@@ -9,7 +9,14 @@ const LandingPage: React.FC = () => {
     const loadData = async () => {
       try {
         const data = await fetchScheduleData();
-        setSchedule(data.filter(item => item.Status?.toLowerCase() !== 'completed'));
+        const activeSchedules = data.filter(item => item.Status?.toLowerCase() !== 'completed');
+        // Sort to ensure 'Ongoing' is at the top
+        activeSchedules.sort((a, b) => {
+          if (a.Status?.toLowerCase() === 'ongoing') return -1;
+          if (b.Status?.toLowerCase() === 'ongoing') return 1;
+          return 0;
+        });
+        setSchedule(activeSchedules);
       } catch (error) {
         console.error("Failed to fetch schedule data", error);
       } finally {
@@ -21,7 +28,7 @@ const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ padding: 'var(--spacing-md)', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ padding: 'var(--spacing-lg)', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
         <div>
           <h1 style={{ color: 'var(--color-primary)' }}>YARSI TV</h1>

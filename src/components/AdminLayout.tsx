@@ -1,21 +1,40 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Calendar, Package, LogOut } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('yarsi_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('yarsi_user');
+    navigate('/');
+  };
 
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: <Home size={18} /> },
-    { path: '/admin/schedule/new', label: 'Schedule', icon: <Calendar size={18} /> },
+    { path: '/admin/schedule/new', label: 'Schedule Entry', icon: <Calendar size={18} /> },
     { path: '/admin/inventory', label: 'Inventory', icon: <Package size={18} /> },
   ];
 
+  if (!user) return null; // Wait for redirect if not logged in
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-surface-container-lowest)' }}>
-      {/* Sidebar */}
+      {/* Sidebar - Fixed width desktop layout */}
       <aside style={{ 
-        width: '250px', 
+        width: '280px', 
+        minWidth: '280px',
         backgroundColor: 'var(--color-surface-container-low)',
         borderRight: '1px solid var(--color-border)',
         display: 'flex',
@@ -52,16 +71,37 @@ const AdminLayout: React.FC = () => {
           </ul>
         </nav>
 
-        <div style={{ padding: 'var(--spacing-md)' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-outline)' }}>
+        {/* Static Bottom Section for User Profile and Logout */}
+        <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--spacing-md)', backgroundColor: 'var(--color-surface-container)' }}>
+          <div style={{ marginBottom: 'var(--spacing-sm)' }}>
+            <div style={{ fontWeight: 600, color: 'var(--color-on-surface)' }}>{user.name}</div>
+            <div className="label-caps" style={{ color: user.role === 'Manager' ? 'var(--color-vibrant-green)' : 'var(--color-outline)' }}>{user.role}</div>
+          </div>
+          
+          <button 
+            onClick={handleLogout}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              width: '100%',
+              gap: 'var(--spacing-sm)', 
+              color: 'var(--color-error)',
+              background: 'transparent',
+              border: '1px solid var(--color-error)',
+              padding: 'var(--spacing-sm)',
+              borderRadius: 'var(--radius-base)',
+              cursor: 'pointer'
+            }}
+          >
             <LogOut size={18} />
-            <span>Logout</span>
-          </Link>
+            <span style={{ fontWeight: 600 }}>LOGOUT</span>
+          </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {/* Main Content Area - Fluid width */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <header style={{ 
           height: '60px', 
           borderBottom: '1px solid var(--color-border)',
@@ -76,7 +116,7 @@ const AdminLayout: React.FC = () => {
           </div>
         </header>
         
-        <div style={{ flex: 1, padding: 'var(--spacing-md)', overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: 'var(--spacing-lg)', overflowY: 'auto' }}>
           <Outlet />
         </div>
       </main>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Package, LogOut } from 'lucide-react';
+import { Home, Calendar, Package, LogOut, Users } from 'lucide-react';
+import ToastContainer from './ToastContainer';
 
 const AdminLayout: React.FC = () => {
   const location = useLocation();
@@ -12,6 +13,7 @@ const AdminLayout: React.FC = () => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     } else {
+      // Force redirect to login if no valid session
       navigate('/login');
     }
   }, [navigate]);
@@ -27,7 +29,12 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/inventory', label: 'Inventory', icon: <Package size={18} /> },
   ];
 
-  if (!user) return null; // Wait for redirect if not logged in
+  if (user?.role === 'Manager') {
+    navItems.push({ path: '/admin/users', label: 'Users', icon: <Users size={18} /> });
+  }
+
+  // Prevent flash of protected content
+  if (!user) return null;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-surface-container-lowest)' }}>
@@ -120,6 +127,7 @@ const AdminLayout: React.FC = () => {
           <Outlet />
         </div>
       </main>
+      <ToastContainer />
     </div>
   );
 };

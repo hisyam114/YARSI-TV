@@ -82,3 +82,23 @@ export const fetchEquipmentData = async (): Promise<EquipmentItem[]> => {
   });
 };
 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+
+export const executeApi = async (sheetName: string, action: string, record: any) => {
+  try {
+    const session = localStorage.getItem('yarsi_user');
+    const username = session ? JSON.parse(session).name : 'System';
+
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ sheetName, action, record, username }),
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+    });
+    const result = await res.json();
+    return result.status === 'success';
+  } catch (err) {
+    console.error(`API Error on ${sheetName} [${action}]`, err);
+    return false;
+  }
+};
+

@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import InventoryManagement from './pages/InventoryManagement';
 import ScheduleForm from './pages/ScheduleForm';
+import UserManagement from './pages/UserManagement';
 
 // Components
 import AdminLayout from './components/AdminLayout';
@@ -25,6 +26,7 @@ function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="inventory" element={<InventoryManagement />} />
             <Route path="schedule/new" element={<ScheduleForm />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
         </Routes>
       </div>

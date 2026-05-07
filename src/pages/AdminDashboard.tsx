@@ -1,15 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { fetchScheduleData, fetchEquipmentData, type ScheduleItem, type EquipmentItem } from '../services/googleSheets';
-import { X, CheckCircle } from 'lucide-react';
+import { fetchScheduleData, fetchEquipmentData, executeApi, type ScheduleItem, type EquipmentItem } from '../services/googleSheets';
+import { X, CheckCircle, Edit, Trash2, Save } from 'lucide-react';
+import { showToast } from '../utils/toast';
+import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY } from '../utils/dateUtils';
+
+const getStatusColor = (status?: string) => {
+  const s = status?.toLowerCase() || '';
+  if (s === 'ongoing') return 'var(--color-vibrant-green)';
+  if (s === 'upcoming') return 'var(--color-outline)';
+  if (s === 'done' || s === 'completed') return 'var(--color-primary)';
+  if (s === 'cancelled') return 'var(--color-error)';
+  return 'var(--color-outline)';
+};
 
 const AdminDashboard: React.FC = () => {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
+  // Get today in YYYY-MM-DD (internal format) for filtering
+  const getTodayISO = () => new Date().toISOString().split('T')[0];
+  
+  // Filter starts OFF — empty string means show all (from today)
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');  
+  // For the custom DD/MM/YYYY input display
+  const [filterDisplayValue, setFilterDisplayValue] = useState<string>('');
+  
   const [selectedEvent, setSelectedEvent] = useState<ScheduleItem | null>(null);
   const [showChecklist, setShowChecklist] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState<ScheduleItem | null>(null);
+  // All authenticated users can edit schedules according to new rules
 
   useEffect(() => {
     const loadData = async () => {
@@ -18,6 +39,19 @@ const AdminDashboard: React.FC = () => {
           fetchScheduleData(),
           fetchEquipmentData()
         ]);
+        
+        // Sort: today & future first (ascending), past at the bottom
+        const todayISO = getTodayISO();
+        schedData.sort((a, b) => {
+          const dateA = parseSheetDate(a.Date, a.Start_Time);
+          const dateB = parseSheetDate(b.Date, b.Start_Time);
+          const todayDate = new Date(todayISO + 'T00:00');
+          const aIsPast = dateA < todayDate;
+          const bIsPast = dateB < todayDate;
+          if (aIsPast !== bIsPast) return aIsPast ? 1 : -1;
+          return dateA.getTime() - dateB.getTime();
+        });
+
         setSchedule(schedData);
         setEquipment(equipData);
       } catch (error) {
@@ -33,27 +67,69 @@ const AdminDashboard: React.FC = () => {
   const ongoingProgram = schedule.find(item => item.Status?.toLowerCase() === 'ongoing');
   const upcomingPrograms = schedule.filter(item => item.Status?.toLowerCase() === 'upcoming');
 
-  // Filter schedule by date
+  // Filter schedule by datepicker — no filter shows all from today onwards
+  const todayISO = getTodayISO();
   const filteredSchedule = selectedDateFilter 
-    ? schedule.filter(item => item.Date === selectedDateFilter)
-    : schedule;
-
-  const uniqueDates = Array.from(new Set(schedule.map(item => item.Date).filter(Boolean)));
+    ? schedule.filter(item => normalizeDateToISO(item.Date) === selectedDateFilter)
+    : schedule.filter(item => normalizeDateToISO(item.Date) >= todayISO);
 
   const handleCloseEventClick = () => {
     setShowChecklist(true);
   };
 
-  const handleConfirmChecklist = () => {
+  const handleConfirmChecklist = async () => {
     if (selectedEvent) {
-      setSchedule(prev => prev.map(item => 
-        item.Schedule_ID === selectedEvent.Schedule_ID 
-          ? { ...item, Status: 'Completed' } 
-          : item
-      ));
+      const updatedEvent = { ...selectedEvent, Status: 'Done' };
+      const success = await executeApi('Schedules', 'update', updatedEvent);
+      if (success) {
+        setSchedule(prev => prev.map(item => 
+          item.Schedule_ID === selectedEvent.Schedule_ID ? updatedEvent : item
+        ));
+        setShowChecklist(false);
+        setSelectedEvent(null);
+        showToast(`"${selectedEvent.Program_Name}" marked as Done.`, 'success');
+      } else {
+        showToast('Failed to update status.', 'error');
+      }
     }
-    setShowChecklist(false);
-    setSelectedEvent(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (editFormData) {
+      const success = await executeApi('Schedules', 'update', editFormData);
+      if (success) {
+        setSchedule(prev => prev.map(item => 
+          item.Schedule_ID === editFormData.Schedule_ID ? editFormData : item
+        ));
+        setSelectedEvent(editFormData);
+        setIsEditing(false);
+        showToast(`"${editFormData.Program_Name}" updated.`, 'success');
+      } else {
+        showToast('Failed to save changes.', 'error');
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this schedule?')) {
+      if (selectedEvent) {
+        const success = await executeApi('Schedules', 'delete', selectedEvent);
+        if (success) {
+          setSchedule(prev => prev.filter(item => item.Schedule_ID !== selectedEvent.Schedule_ID));
+          showToast(`Schedule "${selectedEvent.Program_Name}" deleted.`, 'info');
+          setSelectedEvent(null);
+          setIsEditing(false);
+        } else {
+          showToast('Failed to delete schedule.', 'error');
+        }
+      }
+    }
+  };
+
+  const openModal = (item: ScheduleItem) => {
+    setSelectedEvent(item);
+    setEditFormData(item);
+    setIsEditing(false);
   };
 
   return (
@@ -95,22 +171,43 @@ const AdminDashboard: React.FC = () => {
         <h3>Jadwal Operasional</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
           <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter Date:</label>
-          <select 
-            value={selectedDateFilter} 
-            onChange={(e) => setSelectedDateFilter(e.target.value)}
+          <input 
+            type="text"
+            placeholder="DD/MM/YYYY"
+            value={filterDisplayValue} 
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, '').slice(0, 8);
+              let display = raw;
+              if (raw.length >= 3) display = raw.slice(0,2) + '/' + raw.slice(2);
+              if (raw.length >= 5) display = raw.slice(0,2) + '/' + raw.slice(2,4) + '/' + raw.slice(4);
+              setFilterDisplayValue(display);
+              // Convert DD/MM/YYYY → YYYY-MM-DD for internal filtering
+              if (raw.length === 8) {
+                const dd = raw.slice(0,2), mm = raw.slice(2,4), yyyy = raw.slice(4,8);
+                setSelectedDateFilter(`${yyyy}-${mm}-${dd}`);
+              } else {
+                setSelectedDateFilter('');
+              }
+            }}
             style={{ 
               background: 'var(--color-surface-container)', 
               color: 'var(--color-on-surface)', 
               border: '1px solid var(--color-border)', 
               padding: 'var(--spacing-xs) var(--spacing-sm)', 
-              borderRadius: 'var(--radius-sm)' 
+              borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-primary)',
+              width: '110px',
+              letterSpacing: '0.05em'
             }}
-          >
-            <option value="">All Days</option>
-            {uniqueDates.map(date => (
-              <option key={date} value={date}>{date}</option>
-            ))}
-          </select>
+          />
+          {selectedDateFilter && (
+            <button 
+              onClick={() => { setSelectedDateFilter(''); setFilterDisplayValue(''); }}
+              style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-outline)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -125,46 +222,56 @@ const AdminDashboard: React.FC = () => {
               <tr>
                 <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>ID</th>
                 <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Program Name</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Date / Time</th>
+                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'center' }}>Date</th>
+                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'center' }}>Time</th>
                 <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Location</th>
+                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>PIC</th>
                 <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredSchedule.map((item, index) => (
-                <tr 
-                  key={index} 
-                  onClick={() => setSelectedEvent(item)}
-                  style={{ 
-                    borderBottom: index !== filteredSchedule.length - 1 ? '1px solid var(--color-border)' : 'none',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}><small className="text-dim">{item.Schedule_ID}</small></td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 600 }}>{item.Program_Name}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                    <small>{item.Date}</small><br />
-                    <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
-                  </td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.Location}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                    <span style={{ 
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      color: item.Status?.toLowerCase() === 'ongoing' ? 'var(--color-vibrant-green)' : item.Status?.toLowerCase() === 'completed' ? 'var(--color-outline)' : 'var(--color-primary)' 
-                    }}>
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />
-                      <span className="label-caps">{item.Status}</span>
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filteredSchedule.map((item, index) => {
+                const sColor = getStatusColor(item.Status);
+                const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
+                
+                return (
+                  <tr 
+                    key={index} 
+                    onClick={() => openModal(item)}
+                    style={{ 
+                      borderBottom: index !== filteredSchedule.length - 1 ? '1px solid var(--color-border)' : 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}><small className="text-dim">{item.Schedule_ID}</small></td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 600 }}>{item.Program_Name}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center' }}>
+                      <small>{formatDateToDDMMYYYY(item.Date)}</small>
+                    </td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center' }}>
+                      <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
+                    </td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.Location}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.PIC}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
+                      <span style={{ 
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: sColor
+                      }}>
+                        {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                        <span className="label-caps">{item.Status}</span>
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
               {filteredSchedule.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>No schedules found for this date.</td>
+                  <td colSpan={7} style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>No schedules found.</td>
                 </tr>
               )}
             </tbody>
@@ -172,58 +279,131 @@ const AdminDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* SCHEDULE DETAILS MODAL */}
-      {selectedEvent && !showChecklist && (
+      {/* SCHEDULE DETAILS / EDIT MODAL */}
+      {selectedEvent && !showChecklist && editFormData && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
-          <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', width: '100%', maxWidth: '600px', backgroundColor: 'var(--color-surface-container-lowest)' }}>
+          <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', width: '100%', maxWidth: '600px', backgroundColor: 'var(--color-surface-container-lowest)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
               <div>
-                <h3 style={{ margin: 0 }}>{selectedEvent.Program_Name}</h3>
-                <span className="label-caps text-dim">{selectedEvent.Schedule_ID}</span>
+                {isEditing ? (
+                  <input 
+                    value={editFormData.Program_Name} 
+                    onChange={e => setEditFormData({...editFormData, Program_Name: e.target.value})}
+                    style={{ fontSize: '18px', fontWeight: 'bold', background: 'var(--color-surface-container)', color: 'white', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '300px' }}
+                  />
+                ) : (
+                  <h3 style={{ margin: 0 }}>{selectedEvent.Program_Name}</h3>
+                )}
+                <span className="label-caps text-dim" style={{ display: 'block', marginTop: '4px' }}>{selectedEvent.Schedule_ID}</span>
               </div>
-              <button onClick={() => setSelectedEvent(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-outline)', cursor: 'pointer' }}><X size={24} /></button>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                {!isEditing && (
+                  <>
+                    <button onClick={() => setIsEditing(true)} style={{ background: 'var(--color-surface-container)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Edit size={18} /></button>
+                    <button onClick={handleDelete} style={{ background: 'var(--color-error-container)', border: '1px solid var(--color-error)', color: 'var(--color-error)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Trash2 size={18} /></button>
+                  </>
+                )}
+                <button onClick={() => setSelectedEvent(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-outline)', cursor: 'pointer', padding: '6px' }}><X size={24} /></button>
+              </div>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              {/* DATE COLUMN */}
+              <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
+                <div className="label-caps text-dim">Date</div>
+                {isEditing ? (
+                  <input type="date" value={editFormData.Date} onChange={e => setEditFormData({...editFormData, Date: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%', colorScheme: 'dark' }} />
+                ) : (
+                  <div>{formatDateToDDMMYYYY(selectedEvent.Date)}</div>
+                )}
+              </div>
+              
+              {/* TIME COLUMN */}
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">Time</div>
-                <div>{selectedEvent.Date} | {selectedEvent.Start_Time} - {selectedEvent.End_Time}</div>
+                {isEditing ? (
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <input type="time" value={editFormData.Start_Time} onChange={e => setEditFormData({...editFormData, Start_Time: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%', colorScheme: 'dark' }} />
+                    <span>-</span>
+                    <input type="time" value={editFormData.End_Time} onChange={e => setEditFormData({...editFormData, End_Time: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%', colorScheme: 'dark' }} />
+                  </div>
+                ) : (
+                  <div>{selectedEvent.Start_Time} - {selectedEvent.End_Time}</div>
+                )}
               </div>
+
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">Location</div>
-                <div>{selectedEvent.Location}</div>
+                {isEditing ? (
+                  <input value={editFormData.Location} onChange={e => setEditFormData({...editFormData, Location: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%' }} />
+                ) : (
+                  <div>{selectedEvent.Location}</div>
+                )}
               </div>
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">PIC</div>
-                <div>{selectedEvent.PIC}</div>
+                {isEditing ? (
+                  <input value={editFormData.PIC} onChange={e => setEditFormData({...editFormData, PIC: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%' }} />
+                ) : (
+                  <div>{selectedEvent.PIC}</div>
+                )}
               </div>
-              <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)', gridColumn: '1 / -1' }}>
                 <div className="label-caps text-dim">Status</div>
-                <div style={{ color: selectedEvent.Status?.toLowerCase() === 'ongoing' ? 'var(--color-vibrant-green)' : 'var(--color-primary)', fontWeight: 600 }}>{selectedEvent.Status}</div>
+                {isEditing ? (
+                  <select 
+                    value={editFormData.Status} 
+                    onChange={e => setEditFormData({...editFormData, Status: e.target.value})}
+                    style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '6px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%' }}
+                  >
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Done">Done</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: getStatusColor(selectedEvent.Status), fontWeight: 600 }}>
+                    {(selectedEvent.Status?.toLowerCase() === 'done' || selectedEvent.Status?.toLowerCase() === 'completed') ? <CheckCircle size={16} /> : <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                    {selectedEvent.Status}
+                  </div>
+                )}
               </div>
             </div>
 
-            <h4 style={{ marginBottom: 'var(--spacing-xs)' }}>Assigned Equipment</h4>
-            <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)', maxHeight: '150px', overflowY: 'auto' }}>
-               {equipment.slice(0, 4).map(eq => (
-                 <div key={eq.Equipment_ID} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', padding: '4px 0' }}>
-                   <span>{eq.Item_Name} <small className="text-dim">({eq.Category})</small></span>
-                   <span className="text-dim">{eq.Equipment_ID}</span>
-                 </div>
-               ))}
-            </div>
+            {!isEditing && (
+              <>
+                <h4 style={{ marginBottom: 'var(--spacing-xs)' }}>Assigned Equipment</h4>
+                <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)', maxHeight: '150px', overflowY: 'auto' }}>
+                   {equipment.slice(0, 4).map(eq => (
+                     <div key={eq.Equipment_ID} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', padding: '4px 0' }}>
+                       <span>{eq.Item_Name} <small className="text-dim">({eq.Category})</small></span>
+                       <span className="text-dim">{eq.Equipment_ID}</span>
+                     </div>
+                   ))}
+                </div>
+              </>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-lg)' }}>
-              {selectedEvent.Status?.toLowerCase() === 'ongoing' && (
-                <button 
-                  onClick={handleCloseEventClick} 
-                  style={{ padding: '8px 16px', background: 'var(--color-error)', color: 'white', border: 'none', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  CLOSE EVENT
-                </button>
+              {isEditing ? (
+                <>
+                  <button onClick={() => { setIsEditing(false); setEditFormData(selectedEvent); }} style={{ padding: '8px 16px', background: 'transparent', color: 'var(--color-on-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}>CANCEL</button>
+                  <button onClick={handleSaveEdit} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}>
+                    <Save size={18} /> SAVE CHANGES
+                  </button>
+                </>
+              ) : (
+                selectedEvent.Status?.toLowerCase() === 'ongoing' && (
+                  <button 
+                    onClick={handleCloseEventClick} 
+                    style={{ padding: '8px 16px', background: 'var(--color-error)', color: 'white', border: 'none', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    CLOSE EVENT
+                  </button>
+                )
               )}
             </div>
           </div>

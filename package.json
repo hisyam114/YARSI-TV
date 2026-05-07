@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://achmadhm.github.io/YARSI-TV",
+  "homepage": "https://hisyam114.github.io/YARSI-TV",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

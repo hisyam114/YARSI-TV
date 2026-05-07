@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# YARSI TV Crew Portal 📺
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional, real-time management system designed for the YARSI TV crew to coordinate broadcast schedules, track equipment inventory, and manage personnel.
 
-Currently, two official plugins are available:
+![Live Status](https://img.shields.io/badge/Status-Live-success)
+![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?logo=vite)
+![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react)
+![Google Sheets](https://img.shields.io/badge/Database-Google%20Sheets-34A853?logo=google-sheets)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Key Features
 
-## React Compiler
+### 📅 Broadcast Scheduling
+- **Dynamic Sorting**: Intelligent sorting that prioritizes today's events and future programs.
+- **Sequential ID Generation**: Automatic tracking of schedules with sequential formatting (e.g., `SCH-001`).
+- **Real-time Updates**: Instant synchronization with Google Sheets backend.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🛠️ Inventory Management
+- **Master Equipment Tracking**: Comprehensive database of studio assets.
+- **Status Monitoring**: Live tracking of equipment condition and availability.
+- **Audit Ready**: Every change is recorded in the centralized log.
 
-## Expanding the ESLint configuration
+### 🔐 Security & Access Control
+- **Role-Based Access**: Specialized views and permissions for **Managers**, **Admins**, and **Users**.
+- **Session Management**: Automated session resets to ensure security on public terminals.
+- **Route Protection**: Secured admin dashboard accessible only to authenticated personnel.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📝 Activity Logging
+- **Audit Trail**: Every creation, update, or deletion is automatically logged to the `Activity_Log` sheet.
+- **Forensic Detail**: Logs include Timestamp, User identity, Action performed, and affected Record IDs.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠️ Built With
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Frontend**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Backend**: [Google Apps Script API](https://developers.google.com/apps-script)
+- **Styling**: Premium CSS Design System (Glassmorphism & Dynamic Animations)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Deployment**: [GitHub Pages](https://pages.github.com/)
+
+---
+
+## 📅 Data Standards
+
+- **Date Format**: Standardized `DD/MM/YYYY` across the entire platform.
+- **Time Format**: `HH:MM` (24-hour format).
+- **Backend**: All data mutations are routed through a secure Google Apps Script gateway.
+
+---
+
+## 💻 Getting Started
+
+### Prerequisites
+- Node.js (Latest LTS)
+- npm or yarn
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/hisyam114/YARSI-TV.git
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Deployment
+The project is configured for automated deployment to GitHub Pages:
+```bash
+npm run deploy
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 👨‍💻 Project Maintainer
+Developed for **YARSI TV Crew**.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+*This project is private and intended for use by YARSI TV personnel only.*

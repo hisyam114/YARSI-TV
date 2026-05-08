@@ -19,9 +19,6 @@ export const CACHE_KEYS = {
   USERS: `${CACHE_PREFIX}users`,
 } as const;
 
-// Default cache duration (5 minutes) - used as fallback
-const DEFAULT_CACHE_DURATION = 5 * 60 * 1000;
-
 /**
  * Get the current cache version (timestamp of last spreadsheet update)
  */

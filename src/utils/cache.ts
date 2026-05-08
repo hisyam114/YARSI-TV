@@ -22,9 +22,15 @@ export const CACHE_KEYS = {
 
 /**
  * Get the current cache version (timestamp of last spreadsheet update)
+ * Initialize with current timestamp if not set
  */
 export const getCacheVersion = (): string => {
-  return localStorage.getItem(CACHE_VERSION_KEY) || '0';
+  let version = localStorage.getItem(CACHE_VERSION_KEY);
+  if (!version) {
+    version = Date.now().toString();
+    localStorage.setItem(CACHE_VERSION_KEY, version);
+  }
+  return version;
 };
 
 /**

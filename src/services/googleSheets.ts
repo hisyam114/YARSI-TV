@@ -140,16 +140,10 @@ export const fetchEquipmentData = async (): Promise<EquipmentItem[]> => {
 };
 
 /**
- * Fetch blog articles with caching
+ * Fetch blog articles - always fetches fresh data (no caching)
+ * This ensures we always get the latest articles from the spreadsheet
  */
 export const fetchBlogData = async (): Promise<BlogArticle[]> => {
-  // Check cache first
-  const cached = getCachedData<BlogArticle[]>(CACHE_KEYS.BLOGS);
-  if (cached) {
-    console.log('[Cache] Using cached blog data');
-    return cached;
-  }
-
   return new Promise((resolve, reject) => {
     Papa.parse(BLOG_CSV_URL, {
       download: true,
@@ -157,9 +151,7 @@ export const fetchBlogData = async (): Promise<BlogArticle[]> => {
       skipEmptyLines: true,
       complete: (results) => {
         const data = results.data as BlogArticle[];
-        // Cache the fetched data
-        setCachedData(CACHE_KEYS.BLOGS, data);
-        console.log('[Cache] Cached blog data');
+        console.log('[Blog] Fetched', data.length, 'articles from spreadsheet');
         resolve(data);
       },
       error: (error: Error) => {

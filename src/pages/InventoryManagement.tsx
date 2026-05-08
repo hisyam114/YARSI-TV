@@ -135,13 +135,15 @@ const InventoryManagement: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           {/* Desktop Header */}
-          <div className="mobile-hide" style={{ 
-            display: 'grid', 
+          <div className="desktop-grid" style={{ 
             gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px', 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
             color: 'var(--color-outline)',
             gap: 'var(--spacing-md)',
-            textAlign: 'center'
+            textAlign: 'center',
+            borderBottom: '2px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-container-low)',
+            borderRadius: 'var(--radius-sm)'
           }}>
             <span className="label-caps">ID</span>
             <span className="label-caps">Category</span>

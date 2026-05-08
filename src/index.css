@@ -138,6 +138,11 @@ button {
   display: grid !important;
 }
 
+/* Flex container: shown on mobile, hidden on desktop */
+.mobile-only-flex {
+  display: flex !important;
+}
+
 @media (min-width: 768px) {
   .mobile-hide {
     display: initial !important;
@@ -149,6 +154,9 @@ button {
     display: grid !important;
   }
   .mobile-only-grid {
+    display: none !important;
+  }
+  .mobile-only-flex {
     display: none !important;
   }
 }

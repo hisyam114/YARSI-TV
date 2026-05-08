@@ -230,7 +230,7 @@ const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           {/* Desktop Header */}
           <div className="desktop-grid" style={{ 
-            gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px', 
+            gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px', 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
             color: 'var(--color-outline)',
             gap: 'var(--spacing-md)',
@@ -246,22 +246,6 @@ const AdminDashboard: React.FC = () => {
             <span className="label-caps">Location</span>
             <span className="label-caps">PIC</span>
             <span className="label-caps">Status</span>
-          </div>
-
-          {/* Mobile Header - separate row, always visible on mobile */}
-          <div className="mobile-only-grid" style={{ 
-            gridTemplateColumns: '1fr 90px 110px 80px', 
-            padding: 'var(--spacing-xs) var(--spacing-md)', 
-            color: 'var(--color-outline)',
-            gap: 'var(--spacing-sm)',
-            borderBottom: '2px solid var(--color-border)',
-            backgroundColor: 'var(--color-surface-container-low)',
-            borderRadius: 'var(--radius-sm)'
-          }}>
-            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'left' }}>Program Name</span>
-            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Date</span>
-            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Time</span>
-            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'right' }}>Status</span>
           </div>
 
           {filteredSchedule.map((item, index) => {
@@ -281,9 +265,9 @@ const AdminDashboard: React.FC = () => {
                   backgroundColor: 'var(--color-surface-container)',
                 }}
               >
-                {/* Desktop Layout: grid row */}
+                {/* Desktop Layout: full grid row */}
                 <div className="desktop-grid" style={{
-                  gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px',
+                  gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px',
                   alignItems: 'center',
                   gap: 'var(--spacing-md)',
                   textAlign: 'center'
@@ -304,29 +288,24 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Mobile Layout: aligned 4-column row matching mobile header */}
-                <div className="mobile-only-grid" style={{
-                  gridTemplateColumns: '1fr 90px 110px 80px',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-sm)'
+                {/* Mobile Layout: 2-row card — Program Name + Status / Date + Time */}
+                <div className="mobile-only-flex" style={{
+                  flexDirection: 'column',
+                  gap: '6px'
                 }}>
-                  <div style={{ textAlign: 'left', overflow: 'hidden' }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-on-surface)', flex: 1, lineHeight: 1.3 }}>
                       {item.Program_Name}
                     </div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div className="text-dim" style={{ fontSize: '12px' }}>{formatDateToDDMMYYYY(item.Date)}</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>{item.Start_Time}</div>
-                    <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>- {item.End_Time}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: sColor }}>
-                      {isDone ? <CheckCircle size={11} /> : <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor', flexShrink: 0 }} />}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: sColor, flexShrink: 0 }}>
+                      {isDone ? <CheckCircle size={12} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
                       <span className="label-caps" style={{ fontSize: '10px' }}>{item.Status}</span>
                     </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-outline)', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span>{formatDateToDDMMYYYY(item.Date)}</span>
+                    <span>·</span>
+                    <span>{item.Start_Time} – {item.End_Time}</span>
                   </div>
                 </div>
               </div>

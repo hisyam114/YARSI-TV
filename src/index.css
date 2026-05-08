@@ -128,11 +128,27 @@ button {
   display: grid !important;
 }
 
+/* Grid container: hidden on mobile, shown as grid on desktop */
+.desktop-grid {
+  display: none !important;
+}
+
+/* Grid container: shown as grid on mobile, hidden on desktop */
+.mobile-only-grid {
+  display: grid !important;
+}
+
 @media (min-width: 768px) {
   .mobile-hide {
     display: initial !important;
   }
   .desktop-hide {
+    display: none !important;
+  }
+  .desktop-grid {
+    display: grid !important;
+  }
+  .mobile-only-grid {
     display: none !important;
   }
 }

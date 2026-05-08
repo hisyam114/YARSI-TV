@@ -143,13 +143,15 @@ const LandingPage: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             {/* Desktop Header Row */}
-            <div className="mobile-hide" style={{ 
-              display: 'grid', 
+            <div className="desktop-grid" style={{ 
               gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px', 
               padding: 'var(--spacing-sm) var(--spacing-md)', 
               color: 'var(--color-outline)',
               gap: 'var(--spacing-md)',
-              textAlign: 'center'
+              textAlign: 'center',
+              borderBottom: '2px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface-container-low)',
+              borderRadius: 'var(--radius-sm)'
             }}>
               <span className="label-caps">Time</span>
               <span className="label-caps">Date</span>
@@ -160,8 +162,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             {/* Mobile Header Row - separated, always visible */}
-            <div className="desktop-hide" style={{ 
-              display: 'grid', 
+            <div className="mobile-only-grid" style={{ 
               gridTemplateColumns: '1fr 90px 110px 80px', 
               padding: 'var(--spacing-xs) var(--spacing-md)', 
               color: 'var(--color-outline)',
@@ -190,8 +191,7 @@ const LandingPage: React.FC = () => {
                   backgroundColor: isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)',
                 }}>
                   {/* Desktop layout: full grid */}
-                  <div className="mobile-hide" style={{ 
-                    display: 'grid',
+                  <div className="desktop-grid" style={{ 
                     gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px',
                     alignItems: 'center',
                     gap: 'var(--spacing-md)',
@@ -223,8 +223,7 @@ const LandingPage: React.FC = () => {
                   </div>
 
                   {/* Mobile layout: 4-column matching the mobile header */}
-                  <div className="desktop-hide" style={{
-                    display: 'grid',
+                  <div className="mobile-only-grid" style={{
                     gridTemplateColumns: '1fr 90px 110px 80px',
                     alignItems: 'center',
                     gap: 'var(--spacing-sm)'

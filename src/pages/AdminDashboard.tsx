@@ -229,13 +229,15 @@ const AdminDashboard: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           {/* Desktop Header */}
-          <div className="mobile-hide" style={{ 
-            display: 'grid', 
+          <div className="desktop-grid" style={{ 
             gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px', 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
             color: 'var(--color-outline)',
             gap: 'var(--spacing-md)',
-            textAlign: 'center'
+            textAlign: 'center',
+            borderBottom: '2px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-container-low)',
+            borderRadius: 'var(--radius-sm)'
           }}>
             <span className="label-caps">ID</span>
             <span className="label-caps" style={{ textAlign: 'left' }}>Program Name</span>
@@ -246,9 +248,8 @@ const AdminDashboard: React.FC = () => {
             <span className="label-caps">Status</span>
           </div>
 
-          {/* Mobile Header - separate sticky row, always visible on mobile */}
-          <div className="desktop-hide" style={{ 
-            display: 'grid', 
+          {/* Mobile Header - separate row, always visible on mobile */}
+          <div className="mobile-only-grid" style={{ 
             gridTemplateColumns: '1fr 90px 110px 80px', 
             padding: 'var(--spacing-xs) var(--spacing-md)', 
             color: 'var(--color-outline)',
@@ -281,8 +282,7 @@ const AdminDashboard: React.FC = () => {
                 }}
               >
                 {/* Desktop Layout: grid row */}
-                <div className="mobile-hide" style={{
-                  display: 'grid',
+                <div className="desktop-grid" style={{
                   gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px',
                   alignItems: 'center',
                   gap: 'var(--spacing-md)',
@@ -305,8 +305,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Mobile Layout: aligned 4-column row matching mobile header */}
-                <div className="desktop-hide" style={{
-                  display: 'grid',
+                <div className="mobile-only-grid" style={{
                   gridTemplateColumns: '1fr 90px 110px 80px',
                   alignItems: 'center',
                   gap: 'var(--spacing-sm)'

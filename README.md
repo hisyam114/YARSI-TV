@@ -47,36 +47,6 @@ A professional, real-time management system designed for the YARSI TV crew to co
 - **Time Format**: `HH:MM` (24-hour format).
 - **Backend**: All data mutations are routed through a secure Google Apps Script gateway.
 
----
-
-## 💻 Getting Started
-
-### Prerequisites
-- Node.js (Latest LTS)
-- npm or yarn
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/hisyam114/YARSI-TV.git
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-### Deployment
-The project is configured for automated deployment to GitHub Pages:
-```bash
-npm run deploy
-```
-
----
-
 ## 👨‍💻 Project Maintainer
 Developed for **YARSI TV Crew**.
 

@@ -28,9 +28,22 @@ export interface EquipmentItem {
   Notes: string;
 }
 
+export interface BlogArticle {
+  Article_ID: string;
+  Title: string;
+  Category: string;
+  Author: string;
+  Published_Date: string;
+  Summary: string;
+  Content: string;
+  Image_URL: string;
+  Read_Time: string;
+}
+
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/export?format=csv&gid=0';
 const USERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Users';
 const EQUIPMENT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Master_Equipment';
+const BLOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Blog_Articles';
 
 /**
  * Fetch schedule data with caching
@@ -120,6 +133,37 @@ export const fetchEquipmentData = async (): Promise<EquipmentItem[]> => {
       },
       error: (error: Error) => {
         console.error("Error fetching Equipment data:", error);
+        reject(error);
+      }
+    });
+  });
+};
+
+/**
+ * Fetch blog articles with caching
+ */
+export const fetchBlogData = async (): Promise<BlogArticle[]> => {
+  // Check cache first
+  const cached = getCachedData<BlogArticle[]>(CACHE_KEYS.BLOGS);
+  if (cached) {
+    console.log('[Cache] Using cached blog data');
+    return cached;
+  }
+
+  return new Promise((resolve, reject) => {
+    Papa.parse(BLOG_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as BlogArticle[];
+        // Cache the fetched data
+        setCachedData(CACHE_KEYS.BLOGS, data);
+        console.log('[Cache] Cached blog data');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Blog data:", error);
         reject(error);
       }
     });

@@ -80,6 +80,7 @@ const AdminLayout: React.FC = () => {
     { path: '/admin', label: 'Dashboard', icon: <Home size={18} /> },
     { path: '/admin/schedule/new', label: 'Schedule Entry', icon: <Calendar size={18} /> },
     { path: '/admin/inventory', label: 'Inventory', icon: <Package size={18} /> },
+    { path: '/admin/blogs', label: 'Blogs', icon: <Users size={18} /> },
   ];
 
   if (user?.role === 'Manager') {

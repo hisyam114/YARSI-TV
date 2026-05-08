@@ -17,6 +17,7 @@ export const CACHE_KEYS = {
   SCHEDULE: `${CACHE_PREFIX}schedule`,
   EQUIPMENT: `${CACHE_PREFIX}equipment`,
   USERS: `${CACHE_PREFIX}users`,
+  BLOGS: `${CACHE_PREFIX}blogs`,
 } as const;
 
 /**

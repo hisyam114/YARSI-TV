@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Package, LogOut, Users } from 'lucide-react';
+import { Home, Calendar, Package, LogOut, Users, X } from 'lucide-react';
 import ToastContainer from './ToastContainer';
 
 const AdminLayout: React.FC = () => {

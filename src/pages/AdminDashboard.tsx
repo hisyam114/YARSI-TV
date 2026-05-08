@@ -246,6 +246,23 @@ const AdminDashboard: React.FC = () => {
             <span className="label-caps">Status</span>
           </div>
 
+          {/* Mobile Header - separate sticky row, always visible on mobile */}
+          <div className="desktop-hide" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 90px 110px 80px', 
+            padding: 'var(--spacing-xs) var(--spacing-md)', 
+            color: 'var(--color-outline)',
+            gap: 'var(--spacing-sm)',
+            borderBottom: '2px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-container-low)',
+            borderRadius: 'var(--radius-sm)'
+          }}>
+            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'left' }}>Program Name</span>
+            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Date</span>
+            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Time</span>
+            <span className="label-caps" style={{ fontSize: '10px', textAlign: 'right' }}>Status</span>
+          </div>
+
           {filteredSchedule.map((item, index) => {
             const sColor = getStatusColor(item.Status);
             const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
@@ -253,51 +270,65 @@ const AdminDashboard: React.FC = () => {
             return (
               <div 
                 key={index} 
-                className="glass-panel responsive-grid" 
                 onClick={() => openModal(item)}
+                className="glass-panel"
                 style={{ 
-                  gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px',
-                  alignItems: 'center',
                   padding: 'var(--spacing-md)', 
                   borderLeft: `4px solid ${sColor}`,
-                  gap: 'var(--spacing-md)',
                   transition: 'background-color 0.2s ease',
                   cursor: 'pointer',
                   backgroundColor: 'var(--color-surface-container)',
-                  textAlign: 'center'
                 }}
               >
-                <div className="mobile-hide"><small className="text-dim">{item.Schedule_ID}</small></div>
-                
-                <div style={{ textAlign: 'left' }}>
-                  <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
-                  <small className="text-dim tablet-show" style={{ display: 'none' }}>{item.Schedule_ID}</small>
-                </div>
-
-                <div>
-                  <small className="text-dim mobile-hide">{formatDateToDDMMYYYY(item.Date)}</small>
-                  <div className="tablet-show" style={{ display: 'none', fontSize: '12px' }}>
-                    {formatDateToDDMMYYYY(item.Date)} • {item.Start_Time}-{item.End_Time}
+                {/* Desktop Layout: grid row */}
+                <div className="mobile-hide" style={{
+                  display: 'grid',
+                  gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-md)',
+                  textAlign: 'center'
+                }}>
+                  <small className="text-dim">{item.Schedule_ID}</small>
+                  <div style={{ textAlign: 'left' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
+                  </div>
+                  <small className="text-dim">{formatDateToDDMMYYYY(item.Date)}</small>
+                  <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
+                  <div className="text-dim">{item.Location}</div>
+                  <div className="text-dim">{item.PIC}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: sColor }}>
+                      {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                      <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
+                    </span>
                   </div>
                 </div>
 
-                <div className="mobile-hide">
-                  <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
-                </div>
-
-                <div className="mobile-hide text-dim">{item.Location}</div>
-                <div className="mobile-hide text-dim">{item.PIC}</div>
-
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <span style={{ 
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    color: sColor
-                  }}>
-                    {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
-                    <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
-                  </span>
+                {/* Mobile Layout: aligned 4-column row matching mobile header */}
+                <div className="desktop-hide" style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 90px 110px 80px',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-sm)'
+                }}>
+                  <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.Program_Name}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div className="text-dim" style={{ fontSize: '12px' }}>{formatDateToDDMMYYYY(item.Date)}</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>{item.Start_Time}</div>
+                    <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>- {item.End_Time}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: sColor }}>
+                      {isDone ? <CheckCircle size={11} /> : <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor', flexShrink: 0 }} />}
+                      <span className="label-caps" style={{ fontSize: '10px' }}>{item.Status}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             );

@@ -142,7 +142,7 @@ const LandingPage: React.FC = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-            {/* Header Row for the Grid - Hidden on mobile */}
+            {/* Desktop Header Row */}
             <div className="mobile-hide" style={{ 
               display: 'grid', 
               gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px', 
@@ -159,77 +159,97 @@ const LandingPage: React.FC = () => {
               <span className="label-caps">Status</span>
             </div>
 
+            {/* Mobile Header Row - separated, always visible */}
+            <div className="desktop-hide" style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 90px 110px 80px', 
+              padding: 'var(--spacing-xs) var(--spacing-md)', 
+              color: 'var(--color-outline)',
+              gap: 'var(--spacing-sm)',
+              borderBottom: '2px solid var(--color-border)',
+              backgroundColor: 'var(--color-surface-container-low)',
+              borderRadius: 'var(--radius-sm)'
+            }}>
+              <span className="label-caps" style={{ fontSize: '10px', textAlign: 'left' }}>Program Name</span>
+              <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Date</span>
+              <span className="label-caps" style={{ fontSize: '10px', textAlign: 'center' }}>Time</span>
+              <span className="label-caps" style={{ fontSize: '10px', textAlign: 'right' }}>Status</span>
+            </div>
+
             {schedule.map((item, index) => {
               const statusColor = getStatusColor(item.Status);
               const statusBg = getStatusBg(item.Status);
               const isOngoing = item.Status?.toLowerCase() === 'ongoing';
               
               return (
-                <div key={index} className="glass-panel responsive-grid" style={{ 
-                  gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px',
-                  alignItems: 'center',
+                <div key={index} className="glass-panel" style={{ 
                   padding: 'var(--spacing-md)', 
                   borderLeft: `4px solid ${statusColor}`,
-                  gap: 'var(--spacing-md)',
                   transition: 'transform 0.2s ease, background-color 0.2s ease',
                   cursor: 'default',
                   backgroundColor: isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)',
-                  textAlign: 'center'
                 }}>
-                  {/* Time & Date Group for Mobile */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ fontWeight: 600, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
+                  {/* Desktop layout: full grid */}
+                  <div className="mobile-hide" style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-md)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontWeight: 600, fontSize: '15px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
                       {item.Start_Time} - {item.End_Time}
                     </div>
-                    <div className="text-dim label-caps" style={{ fontSize: '11px' }}>
+                    <div className="text-dim label-caps" style={{ fontSize: '12px' }}>
                       {formatDateToDDMMYYYY(item.Date)}
                     </div>
-                  </div>
-
-                  {/* Date - Desktop Only */}
-                  <div className="mobile-hide text-dim label-caps">
-                    {formatDateToDDMMYYYY(item.Date)}
-                  </div>
-
-                  {/* Program Name */}
-                  <div style={{ textAlign: 'left' }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)', textAlign: 'left' }}>
                       {item.Program_Name}
                     </h3>
-                    {/* Location & PIC for Mobile */}
-                    <div className="text-dim" style={{ fontSize: '13px', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      <span className="mobile-hide" style={{ display: 'none' }}></span> {/* Placeholder */}
-                      <span className="tablet-show" style={{ display: 'block' }}>
-                        @ {item.Location} • PIC: {item.PIC}
+                    <div className="text-dim">{item.Location}</div>
+                    <div className="text-dim">{item.PIC}</div>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <span className="label-caps" style={{ 
+                        padding: 'var(--spacing-xs) var(--spacing-sm)', 
+                        backgroundColor: statusBg, color: statusColor,
+                        borderRadius: 'var(--radius-full)',
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        boxShadow: isOngoing ? `0 0 10px ${statusBg}` : 'none'
+                      }}>
+                        {isOngoing && <div className="pulse-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                        {item.Status}
                       </span>
                     </div>
                   </div>
 
-                  {/* Location - Desktop Only */}
-                  <div className="mobile-hide text-dim">
-                    {item.Location}
-                  </div>
-
-                  {/* PIC - Desktop Only */}
-                  <div className="mobile-hide text-dim">
-                    {item.PIC}
-                  </div>
-
-                  {/* Status Indicator */}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <span className="label-caps" style={{ 
-                      padding: 'var(--spacing-xs) var(--spacing-sm)', 
-                      backgroundColor: statusBg,
-                      color: statusColor,
-                      borderRadius: 'var(--radius-full)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: isOngoing ? `0 0 10px ${statusBg}` : 'none'
-                    }}>
-                      {isOngoing && <div className="pulse-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
-                      {item.Status}
-                    </span>
+                  {/* Mobile layout: 4-column matching the mobile header */}
+                  <div className="desktop-hide" style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 90px 110px 80px',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-sm)'
+                  }}>
+                    <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                      <div style={{ fontWeight: 600, fontSize: '14px', color: isOngoing ? 'white' : 'var(--color-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.Program_Name}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div className="text-dim" style={{ fontSize: '12px' }}>{formatDateToDDMMYYYY(item.Date)}</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>{item.Start_Time}</div>
+                      <div className="text-dim" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>- {item.End_Time}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="label-caps" style={{ 
+                        display: 'inline-flex', alignItems: 'center', gap: '3px',
+                        color: statusColor, fontSize: '10px'
+                      }}>
+                        {isOngoing && <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'currentColor', flexShrink: 0 }} />}
+                        {item.Status}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );

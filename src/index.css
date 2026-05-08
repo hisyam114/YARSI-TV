@@ -123,9 +123,17 @@ button {
   display: none !important;
 }
 
+/* Shows only on mobile (< 768px), hidden on desktop */
+.desktop-hide {
+  display: grid !important;
+}
+
 @media (min-width: 768px) {
   .mobile-hide {
     display: initial !important;
+  }
+  .desktop-hide {
+    display: none !important;
   }
 }
 

@@ -22,9 +22,7 @@ const AdminDashboard: React.FC = () => {
   const getTodayISO = () => new Date().toISOString().split('T')[0];
   
   // Filter starts OFF — empty string means show all (from today)
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');  
-  // For the custom DD/MM/YYYY input display
-  const [filterDisplayValue, setFilterDisplayValue] = useState<string>('');
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
   
   const [selectedEvent, setSelectedEvent] = useState<ScheduleItem | null>(null);
   const [showChecklist, setShowChecklist] = useState(false);
@@ -184,22 +182,9 @@ const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
           <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter Date:</label>
           <input 
-            type="text"
-            placeholder="DD/MM/YYYY"
-            value={filterDisplayValue} 
-            onChange={(e) => {
-              const raw = e.target.value.replace(/\D/g, '').slice(0, 8);
-              let display = raw;
-              if (raw.length >= 3) display = raw.slice(0,2) + '/' + raw.slice(2);
-              if (raw.length >= 5) display = raw.slice(0,2) + '/' + raw.slice(2,4) + '/' + raw.slice(4);
-              setFilterDisplayValue(display);
-              if (raw.length === 8) {
-                const dd = raw.slice(0,2), mm = raw.slice(2,4), yyyy = raw.slice(4,8);
-                setSelectedDateFilter(`${yyyy}-${mm}-${dd}`);
-              } else {
-                setSelectedDateFilter('');
-              }
-            }}
+            type="date"
+            value={selectedDateFilter}
+            onChange={(e) => setSelectedDateFilter(e.target.value)}
             style={{ 
               background: 'var(--color-surface-container)', 
               color: 'var(--color-on-surface)', 
@@ -207,13 +192,13 @@ const AdminDashboard: React.FC = () => {
               padding: 'var(--spacing-xs) var(--spacing-sm)', 
               borderRadius: 'var(--radius-sm)',
               fontFamily: 'var(--font-primary)',
-              width: '110px',
-              fontSize: '14px'
+              fontSize: '14px',
+              colorScheme: 'dark'
             }}
           />
           {selectedDateFilter && (
             <button 
-              onClick={() => { setSelectedDateFilter(''); setFilterDisplayValue(''); }}
+              onClick={() => setSelectedDateFilter('')}
               style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-outline)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '12px' }}
             >
               Clear
@@ -223,8 +208,40 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
-          Loading from Google Sheets...
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          {/* Skeleton Loading Animation */}
+          {[1, 2, 3, 4].map((i) => (
+            <div 
+              key={i}
+              className="glass-panel" 
+              style={{ 
+                padding: 'var(--spacing-md)', 
+                borderLeft: '4px solid var(--color-surface-container-high)',
+                animation: 'pulse 2s ease-in-out infinite'
+              }}
+            >
+              <div className="desktop-grid" style={{
+                gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px',
+                alignItems: 'center',
+                gap: 'var(--spacing-md)',
+                textAlign: 'center'
+              }}>
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              </div>
+            </div>
+          ))}
+          <style>{`
+            @keyframes pulse {
+              0%, 100% { opacity: 0.6; }
+              50% { opacity: 1; }
+            }
+          `}</style>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
@@ -260,9 +277,17 @@ const AdminDashboard: React.FC = () => {
                 style={{ 
                   padding: 'var(--spacing-md)', 
                   borderLeft: `4px solid ${sColor}`,
-                  transition: 'background-color 0.2s ease',
+                  transition: 'all 0.2s ease',
                   cursor: 'pointer',
                   backgroundColor: 'var(--color-surface-container)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)';
+                  e.currentTarget.style.transform = 'translateX(4px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-surface-container)';
+                  e.currentTarget.style.transform = 'translateX(0)';
                 }}
               >
                 {/* Desktop Layout: full grid row */}
@@ -440,7 +465,7 @@ const AdminDashboard: React.FC = () => {
                 selectedEvent.Status?.toLowerCase() === 'ongoing' && (
                   <button 
                     onClick={handleCloseEventClick} 
-                    style={{ padding: '8px 16px', background: 'var(--color-error)', color: 'white', border: 'none', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}
+                    style={{ padding: '8px 16px', background: 'var(--color-error-container)', color: 'white', border: 'none', borderRadius: 'var(--radius-base)', cursor: 'pointer', fontWeight: 600 }}
                   >
                     CLOSE EVENT
                   </button>

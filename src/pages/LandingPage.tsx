@@ -30,6 +30,8 @@ const LandingPage: React.FC = () => {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD format
+  const [showLogoutExit, setShowLogoutExit] = useState(false);
 
   useEffect(() => {
     // Carousel Auto-play
@@ -37,6 +39,21 @@ const LandingPage: React.FC = () => {
       setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Check if we need to show logout transition animation
+    const showTransition = localStorage.getItem('show_logout_transition');
+    if (showTransition === 'true') {
+      // Immediately show green overlay with text (from admin navigation)
+      setShowLogoutExit(true);
+      // Remove the flag so it doesn't replay
+      localStorage.removeItem('show_logout_transition');
+      // Start circle-out animation after a brief delay (1s total)
+      setTimeout(() => {
+        setShowLogoutExit(false);
+      }, 1800);
+    }
   }, []);
 
   useEffect(() => {
@@ -65,8 +82,111 @@ const LandingPage: React.FC = () => {
     loadData();
   }, []);
 
+  // Filter schedules by selected date
+  const getFilteredSchedules = () => {
+    if (!selectedDateFilter) return schedule;
+    
+    return schedule.filter(item => {
+      // Normalize item date to YYYY-MM-DD format for comparison
+      const itemDate = item.Date;
+      // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+      if (itemDate.includes('/')) {
+        // DD/MM/YYYY format
+        const parts = itemDate.split('/');
+        if (parts.length === 3) {
+          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` === selectedDateFilter;
+        }
+      } else if (itemDate.includes('-')) {
+        // YYYY-MM-DD format - just compare directly
+        return itemDate === selectedDateFilter;
+      }
+      return false;
+    });
+  };
+
+  const filteredSchedule = getFilteredSchedules();
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', position: 'relative' }}>
+      
+      {/* Logout Exit Animation Overlay - Circle OUT (contract) */}
+      {showLogoutExit && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, #003d14 0%, #002910 50%, #001a0d 100%)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            clipPath: 'circle(125% at 50% 50%)',
+            animation: 'circle-out-hesitate 1.5s cubic-bezier(.25, 1, .30, 1) forwards'
+          } as React.CSSProperties}
+        >
+          {/* Animated Grid Background */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `
+              linear-gradient(rgba(0, 255, 65, 0.08) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(0, 255, 65, 0.08) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            opacity: 0.4,
+            animation: 'gridSlide 20s linear infinite'
+          }} />
+          
+          {/* Glow Effect */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '800px',
+            height: '800px',
+            background: 'radial-gradient(circle, rgba(0, 255, 65, 0.15) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+            animation: 'pulse 3s ease-in-out infinite'
+          }} />
+          
+          {/* Logout Text */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            textAlign: 'center'
+          }}>
+            <div style={{
+              color: '#00FF41',
+              fontSize: 'clamp(32px, 8vw, 56px)',
+              fontWeight: 900,
+              letterSpacing: '0.08em',
+              textShadow: '0 0 30px rgba(0, 255, 65, 0.6), 0 0 60px rgba(0, 255, 65, 0.3), 0 0 100px rgba(0, 255, 65, 0.1)',
+              marginBottom: '16px',
+              textTransform: 'uppercase'
+            }}>
+              SIGNING OUT
+            </div>
+            <div style={{
+              color: 'rgba(255, 255, 255, 0.95)',
+              fontSize: 'clamp(14px, 3vw, 20px)',
+              fontWeight: 600,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)'
+            }}>
+              Session Terminated
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Floating Header */}
       <header style={{ 
@@ -86,10 +206,10 @@ const LandingPage: React.FC = () => {
           <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
         </div>
         <a href="#/login" style={{ 
-          background: 'rgba(0,0,0,0.5)', 
+          background: 'rgba(0, 155, 90, 0.5)', 
           backdropFilter: 'blur(10px)',
           color: 'white',
-          border: '1px solid rgba(255,255,255,0.2)',
+          border: '1px solid rgba(2, 122, 72, 0.5)',
           padding: 'var(--spacing-sm) var(--spacing-md)',
           borderRadius: 'var(--radius-base)',
           fontWeight: 600,
@@ -97,8 +217,19 @@ const LandingPage: React.FC = () => {
           transition: 'all 0.2s ease',
           boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
           fontSize: '14px'
-        }}>
-          Control Room Login
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 155, 90, 0.8)';
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 155, 90, 0.5)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+        }}
+        >
+          YARSI TV Login
         </a>
       </header>
 
@@ -136,9 +267,95 @@ const LandingPage: React.FC = () => {
       <section className="container-padding" style={{ maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-md)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', textAlign: 'center' }}>Live & Upcoming Broadcasts</h2>
         
+        {/* Date Filter */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 'var(--spacing-sm)', 
+          marginBottom: 'var(--spacing-md)',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter by Date:</label>
+          <input 
+            type="date"
+            value={selectedDateFilter}
+            onChange={(e) => setSelectedDateFilter(e.target.value)}
+            style={{ 
+              background: 'var(--color-surface-container)', 
+              color: 'var(--color-on-surface)', 
+              border: '1px solid var(--color-border)', 
+              padding: 'var(--spacing-xs) var(--spacing-sm)', 
+              borderRadius: 'var(--radius-sm)',
+              fontFamily: 'var(--font-primary)',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
+              colorScheme: 'dark'
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border)'}
+          />
+          {selectedDateFilter && (
+            <button 
+              onClick={() => setSelectedDateFilter('')}
+              style={{ 
+                background: 'transparent', 
+                border: '1px solid var(--color-border)', 
+                color: 'var(--color-outline)', 
+                padding: 'var(--spacing-xs) var(--spacing-sm)', 
+                borderRadius: 'var(--radius-sm)', 
+                cursor: 'pointer', 
+                fontSize: '12px',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-surface-container-high)';
+                e.currentTarget.style.borderColor = 'var(--color-outline)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--color-border)';
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        
         {loading ? (
-          <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
-            Loading Live Schedule...
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            {/* Skeleton Loading Animation */}
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i}
+                className="glass-panel" 
+                style={{ 
+                  padding: 'var(--spacing-md)', 
+                  borderLeft: '4px solid var(--color-surface-container-high)',
+                  animation: 'pulse 2s ease-in-out infinite'
+                }}
+              >
+                <div className="desktop-grid" style={{
+                  gridTemplateColumns: '160px 110px 2fr 1.5fr 1fr 120px',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-md)',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                  <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+                </div>
+              </div>
+            ))}
+            <style>{`
+              @keyframes pulse {
+                0%, 100% { opacity: 0.6; }
+                50% { opacity: 1; }
+              }
+            `}</style>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
@@ -161,19 +378,31 @@ const LandingPage: React.FC = () => {
               <span className="label-caps">Status</span>
             </div>
 
-            {schedule.map((item, index) => {
+            {filteredSchedule.map((item, index) => {
               const statusColor = getStatusColor(item.Status);
               const statusBg = getStatusBg(item.Status);
               const isOngoing = item.Status?.toLowerCase() === 'ongoing';
               
               return (
-                <div key={index} className="glass-panel" style={{ 
-                  padding: 'var(--spacing-md)', 
-                  borderLeft: `4px solid ${statusColor}`,
-                  transition: 'transform 0.2s ease, background-color 0.2s ease',
-                  cursor: 'default',
-                  backgroundColor: isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)',
-                }}>
+                <div 
+                  key={index} 
+                  className="glass-panel" 
+                  style={{ 
+                    padding: 'var(--spacing-md)', 
+                    borderLeft: `4px solid ${statusColor}`,
+                    transition: 'all 0.2s ease',
+                    cursor: 'default',
+                    backgroundColor: isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)';
+                    e.currentTarget.style.transform = 'translateX(4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }}
+                >
                   {/* Desktop layout: full grid */}
                   <div className="desktop-grid" style={{ 
                     gridTemplateColumns: '160px 110px 2fr 1.5fr 1fr 120px',
@@ -231,9 +460,9 @@ const LandingPage: React.FC = () => {
               );
             })}
             
-            {schedule.length === 0 && (
+            {filteredSchedule.length === 0 && (
               <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
-                No active broadcasts scheduled at this time.
+                {selectedDateFilter ? `No events registered for ${new Date(selectedDateFilter + 'T00:00').toLocaleDateString('en-GB')}.` : 'No active broadcasts scheduled at this time.'}
               </div>
             )}
           </div>
@@ -248,29 +477,159 @@ const LandingPage: React.FC = () => {
         background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, var(--color-surface-container-lowest) 100%)',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        gap: 'var(--spacing-md)',
-        textAlign: 'center'
+        gap: 'var(--spacing-xl)'
       }}>
+        {/* Main Footer Grid */}
         <div style={{ 
-          display: 'flex', 
-          gap: 'var(--spacing-xl)', 
-          alignItems: 'center',
-          flexDirection: 'column'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 'var(--spacing-xl)',
+          alignItems: 'start'
         }}>
-          <div>
-            <h2 style={{ margin: 0, color: 'white' }}>YARSI TV</h2>
-            <p className="text-dim" style={{ margin: 0 }}>Universitas YARSI Broadcast Network</p>
+          {/* Logo and Branding Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--spacing-md)', textAlign: 'center' }}>
+            <div style={{ 
+              width: '70px', 
+              height: '70px', 
+              borderRadius: '50%', 
+              backgroundColor: 'var(--color-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(0,155,90,0.4)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,155,90,0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,155,90,0.4)';
+            }}>
+              <span style={{ color: 'white', fontSize: '32px', fontWeight: 'bold' }}>Y</span>
+            </div>
+            <div>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '18px', fontWeight: 700 }}>YARSI TV</h3>
+              <p className="text-dim" style={{ margin: '4px 0 0 0', fontSize: '13px' }}>Broadcast Network</p>
+            </div>
           </div>
-          <div className="mobile-hide" style={{ height: '40px', width: '1px', backgroundColor: 'var(--color-border)' }} />
-          <div style={{ display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href="https://www.yarsi.ac.id/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>yarsi.ac.id</a>
-            <a href="#/login" style={{ color: 'var(--color-outline)', textDecoration: 'none' }}>Admin Portal</a>
-            <a href="#" style={{ color: 'var(--color-outline)', textDecoration: 'none' }}>Schedule Contact</a>
+          
+          {/* Address Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              📍 Location
+            </h4>
+            <p style={{ margin: 0, color: 'var(--color-outline)', fontSize: '13px', lineHeight: 1.6 }}>
+              Menara Yarsi<br />
+              Jl. Letjen Suprapto No.Kav.13<br />
+              RT.10/RW.5, Cemp. Putih Tim.<br />
+              Kec. Cempaka Putih<br />
+              Jakarta Pusat 10510
+            </p>
+          </div>
+          
+          {/* Quick Links Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              🔗 Quick Links
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+              <a href="https://www.yarsi.ac.id/" target="_blank" rel="noopener noreferrer" 
+                 style={{ 
+                   color: 'var(--color-outline)', 
+                   textDecoration: 'none', 
+                   fontSize: '13px',
+                   transition: 'all 0.2s ease',
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: '6px'
+                 }}
+                 onMouseEnter={(e) => {
+                   e.currentTarget.style.color = 'var(--color-vibrant-green)';
+                   e.currentTarget.style.transform = 'translateX(4px)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.currentTarget.style.color = 'var(--color-outline)';
+                   e.currentTarget.style.transform = 'translateX(0)';
+                 }}
+              >
+                → yarsi.ac.id
+              </a>
+              <a href="#/login" 
+                 style={{ 
+                   color: 'var(--color-outline)', 
+                   textDecoration: 'none', 
+                   fontSize: '13px',
+                   transition: 'all 0.2s ease',
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: '6px'
+                 }}
+                 onMouseEnter={(e) => {
+                   e.currentTarget.style.color = 'var(--color-primary)';
+                   e.currentTarget.style.transform = 'translateX(4px)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.currentTarget.style.color = 'var(--color-outline)';
+                   e.currentTarget.style.transform = 'translateX(0)';
+                 }}
+              >
+                → Admin Portal
+              </a>
+              <a href="#" 
+                 style={{ 
+                   color: 'var(--color-outline)', 
+                   textDecoration: 'none', 
+                   fontSize: '13px',
+                   transition: 'all 0.2s ease',
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: '6px'
+                 }}
+                 onMouseEnter={(e) => {
+                   e.currentTarget.style.color = 'var(--color-primary)';
+                   e.currentTarget.style.transform = 'translateX(4px)';
+                 }}
+                 onMouseLeave={(e) => {
+                   e.currentTarget.style.color = 'var(--color-outline)';
+                   e.currentTarget.style.transform = 'translateX(0)';
+                 }}
+              >
+                → Contact
+              </a>
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            <h4 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ℹ️ About
+            </h4>
+            <p style={{ margin: 0, color: 'var(--color-outline)', fontSize: '13px', lineHeight: 1.6 }}>
+              YARSI TV is the official broadcast network of Universitas YARSI, delivering quality content and live programming.
+            </p>
           </div>
         </div>
-        <div className="text-dim label-caps" style={{ fontSize: '12px', marginTop: 'var(--spacing-md)' }}>
-          © {new Date().getFullYear()} Universitas YARSI. All rights reserved.
+
+        {/* Divider */}
+        <div style={{ height: '1px', backgroundColor: 'var(--color-border)', opacity: 0.5 }} />
+
+        {/* Copyright Section */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--spacing-md)',
+          textAlign: 'center'
+        }}>
+          <div className="text-dim label-caps" style={{ fontSize: '12px' }}>
+            © {new Date().getFullYear()} Universitas YARSI. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: '12px' }}>
+            <span className="text-dim">Made with ❤️ by YARSI TV</span>
+          </div>
         </div>
       </footer>
 

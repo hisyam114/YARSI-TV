@@ -122,7 +122,16 @@ const InventoryManagement: React.FC = () => {
             borderRadius: 'var(--radius-base)',
             fontWeight: 600,
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
           }}
         >
           <Plus size={18} />
@@ -131,7 +140,38 @@ const InventoryManagement: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>Loading Equipment...</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          {/* Skeleton Loading Animation */}
+          {[1, 2, 3].map((i) => (
+            <div 
+              key={i}
+              className="glass-panel responsive-grid" 
+              style={{ 
+                gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px',
+                alignItems: 'center',
+                padding: 'var(--spacing-md)', 
+                gap: 'var(--spacing-md)',
+                backgroundColor: 'var(--color-surface-container)',
+                textAlign: 'center',
+                animation: 'pulse 2s ease-in-out infinite'
+              }}
+            >
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+              <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
+            </div>
+          ))}
+          <style>{`
+            @keyframes pulse {
+              0%, 100% { opacity: 0.6; }
+              50% { opacity: 1; }
+            }
+          `}</style>
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           {/* Desktop Header */}
@@ -164,8 +204,11 @@ const InventoryManagement: React.FC = () => {
                 padding: 'var(--spacing-md)', 
                 gap: 'var(--spacing-md)',
                 backgroundColor: 'var(--color-surface-container)',
-                textAlign: 'center'
+                textAlign: 'center',
+                transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container)'}
             >
               <div className="mobile-hide"><small className="text-dim">{item.Equipment_ID}</small></div>
               
@@ -202,8 +245,50 @@ const InventoryManagement: React.FC = () => {
               </div>
 
               <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                <button onClick={() => handleOpenModal(item)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Edit size={16} /></button>
-                <button onClick={() => handleDelete(item.Equipment_ID)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-error)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Trash2 size={16} /></button>
+                <button 
+                  onClick={() => handleOpenModal(item)} 
+                  style={{ 
+                    background: 'var(--color-surface-container-high)', 
+                    border: '1px solid var(--color-border)', 
+                    color: 'var(--color-on-surface)', 
+                    cursor: 'pointer', 
+                    padding: '6px', 
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-primary)';
+                    e.currentTarget.style.color = 'var(--color-on-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--color-surface-container-high)';
+                    e.currentTarget.style.color = 'var(--color-on-surface)';
+                  }}
+                >
+                  <Edit size={16} />
+                </button>
+                <button 
+                  onClick={() => handleDelete(item.Equipment_ID)} 
+                  style={{ 
+                    background: 'var(--color-surface-container-high)', 
+                    border: '1px solid var(--color-border)', 
+                    color: 'var(--color-error)', 
+                    cursor: 'pointer', 
+                    padding: '6px', 
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--color-error)';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--color-surface-container-high)';
+                    e.currentTarget.style.color = 'var(--color-error)';
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           ))}

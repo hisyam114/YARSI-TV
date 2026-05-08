@@ -133,10 +133,15 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2 style={{ marginBottom: 'var(--spacing-md)' }}>Dashboard Terpadu</h2>
+    <div className="container-padding" style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: 'var(--spacing-xl)' }}>
+      <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: 'clamp(20px, 4vw, 24px)' }}>Dashboard Terpadu</h2>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        gap: 'var(--spacing-md)', 
+        marginBottom: 'var(--spacing-lg)' 
+      }}>
         {/* Metric Cards */}
         <div className="glass-panel" style={{ padding: 'var(--spacing-md)' }}>
           <p className="label-caps" style={{ color: 'var(--color-outline)' }}>ON-AIR STATUS</p>
@@ -167,9 +172,16 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-        <h3>Jadwal Operasional</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: 'var(--spacing-sm)',
+        flexWrap: 'wrap',
+        gap: 'var(--spacing-sm)'
+      }}>
+        <h3 style={{ margin: 0 }}>Jadwal Operasional</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
           <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter Date:</label>
           <input 
             type="text"
@@ -181,7 +193,6 @@ const AdminDashboard: React.FC = () => {
               if (raw.length >= 3) display = raw.slice(0,2) + '/' + raw.slice(2);
               if (raw.length >= 5) display = raw.slice(0,2) + '/' + raw.slice(2,4) + '/' + raw.slice(4);
               setFilterDisplayValue(display);
-              // Convert DD/MM/YYYY → YYYY-MM-DD for internal filtering
               if (raw.length === 8) {
                 const dd = raw.slice(0,2), mm = raw.slice(2,4), yyyy = raw.slice(4,8);
                 setSelectedDateFilter(`${yyyy}-${mm}-${dd}`);
@@ -197,13 +208,13 @@ const AdminDashboard: React.FC = () => {
               borderRadius: 'var(--radius-sm)',
               fontFamily: 'var(--font-primary)',
               width: '110px',
-              letterSpacing: '0.05em'
+              fontSize: '14px'
             }}
           />
           {selectedDateFilter && (
             <button 
               onClick={() => { setSelectedDateFilter(''); setFilterDisplayValue(''); }}
-              style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-outline)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-outline)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '12px' }}
             >
               Clear
             </button>
@@ -211,73 +222,94 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ overflowX: 'auto', padding: 0 }}>
-        {loading ? (
-          <div style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>
-            Loading from Google Sheets...
+      {loading ? (
+        <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+          Loading from Google Sheets...
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          {/* Desktop Header */}
+          <div className="mobile-hide" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px', 
+            padding: 'var(--spacing-sm) var(--spacing-md)', 
+            color: 'var(--color-outline)',
+            gap: 'var(--spacing-md)',
+            textAlign: 'center'
+          }}>
+            <span className="label-caps">ID</span>
+            <span className="label-caps" style={{ textAlign: 'left' }}>Program Name</span>
+            <span className="label-caps">Date</span>
+            <span className="label-caps">Time</span>
+            <span className="label-caps">Location</span>
+            <span className="label-caps">PIC</span>
+            <span className="label-caps">Status</span>
           </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ backgroundColor: 'var(--color-surface-container)' }}>
-              <tr>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>ID</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Program Name</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'center' }}>Date</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'center' }}>Time</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Location</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>PIC</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSchedule.map((item, index) => {
-                const sColor = getStatusColor(item.Status);
-                const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
+
+          {filteredSchedule.map((item, index) => {
+            const sColor = getStatusColor(item.Status);
+            const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
+            
+            return (
+              <div 
+                key={index} 
+                className="glass-panel responsive-grid" 
+                onClick={() => openModal(item)}
+                style={{ 
+                  gridTemplateColumns: '100px 2fr 120px 120px 1.5fr 1fr 120px',
+                  alignItems: 'center',
+                  padding: 'var(--spacing-md)', 
+                  borderLeft: `4px solid ${sColor}`,
+                  gap: 'var(--spacing-md)',
+                  transition: 'background-color 0.2s ease',
+                  cursor: 'pointer',
+                  backgroundColor: 'var(--color-surface-container)',
+                  textAlign: 'center'
+                }}
+              >
+                <div className="mobile-hide"><small className="text-dim">{item.Schedule_ID}</small></div>
                 
-                return (
-                  <tr 
-                    key={index} 
-                    onClick={() => openModal(item)}
-                    style={{ 
-                      borderBottom: index !== filteredSchedule.length - 1 ? '1px solid var(--color-border)' : 'none',
-                      cursor: 'pointer'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}><small className="text-dim">{item.Schedule_ID}</small></td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 600 }}>{item.Program_Name}</td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center' }}>
-                      <small>{formatDateToDDMMYYYY(item.Date)}</small>
-                    </td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center' }}>
-                      <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
-                    </td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.Location}</td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.PIC}</td>
-                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                      <span style={{ 
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        color: sColor
-                      }}>
-                        {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
-                        <span className="label-caps">{item.Status}</span>
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredSchedule.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>No schedules found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+                <div style={{ textAlign: 'left' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
+                  <small className="text-dim tablet-show" style={{ display: 'none' }}>{item.Schedule_ID}</small>
+                </div>
+
+                <div>
+                  <small className="text-dim mobile-hide">{formatDateToDDMMYYYY(item.Date)}</small>
+                  <div className="tablet-show" style={{ display: 'none', fontSize: '12px' }}>
+                    {formatDateToDDMMYYYY(item.Date)} • {item.Start_Time}-{item.End_Time}
+                  </div>
+                </div>
+
+                <div className="mobile-hide">
+                  <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
+                </div>
+
+                <div className="mobile-hide text-dim">{item.Location}</div>
+                <div className="mobile-hide text-dim">{item.PIC}</div>
+
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <span style={{ 
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    color: sColor
+                  }}>
+                    {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                    <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          
+          {filteredSchedule.length === 0 && (
+            <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+              No schedules found.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* SCHEDULE DETAILS / EDIT MODAL */}
       {selectedEvent && !showChecklist && editFormData && (

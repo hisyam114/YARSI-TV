@@ -118,6 +118,51 @@ button {
   border-radius: var(--radius-base);
 }
 
+/* Responsive Utilities */
+.mobile-hide {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .mobile-hide {
+    display: initial !important;
+  }
+}
+
+.responsive-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.tablet-show {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .tablet-show {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    display: grid;
+  }
+  .tablet-show {
+    display: none !important;
+  }
+}
+
+.container-padding {
+  padding: 0 16px;
+}
+
+@media (min-width: 1024px) {
+  .container-padding {
+    padding: 0 5%;
+  }
+}
+
 /* Custom Scrollbar for Control Room Feel */
 ::-webkit-scrollbar {
   width: 8px;
@@ -132,4 +177,15 @@ button {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-outline); 
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 20px; }
+  p { font-size: 14px; }
+  
+  .glass-panel {
+    padding: var(--spacing-sm) !important;
+  }
 }

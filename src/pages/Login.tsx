@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex-center" style={{ height: '100vh', backgroundColor: 'var(--color-surface-container-lowest)' }}>
+    <div className="flex-center container-padding" style={{ height: '100vh', backgroundColor: 'var(--color-surface-container-lowest)' }}>
       <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', width: '100%', maxWidth: '400px' }}>
         <h2 style={{ marginBottom: 'var(--spacing-md)', textAlign: 'center' }}>Admin Authentication</h2>
         

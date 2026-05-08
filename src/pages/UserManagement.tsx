@@ -90,14 +90,21 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+    <div className="container-padding" style={{ maxWidth: '1440px', margin: '0 auto' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: 'var(--spacing-lg)',
+        flexWrap: 'wrap',
+        gap: 'var(--spacing-md)'
+      }}>
         <div>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'clamp(20px, 4vw, 24px)', margin: 0 }}>
             <Shield size={24} color="var(--color-primary)" />
             User Access Management
           </h2>
-          <p className="text-dim">Manage dashboard access and role permissions.</p>
+          <p className="text-dim" style={{ marginTop: '4px' }}>Manage dashboard access and role permissions.</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
@@ -105,7 +112,8 @@ const UserManagement: React.FC = () => {
             display: 'flex', alignItems: 'center', gap: '8px', 
             background: 'var(--color-primary)', color: 'var(--color-on-primary)', 
             border: 'none', padding: '10px 20px', borderRadius: 'var(--radius-base)', 
-            cursor: 'pointer', fontWeight: 600 
+            cursor: 'pointer', fontWeight: 600,
+            fontSize: '14px'
           }}
         >
           <UserPlus size={18} />
@@ -113,46 +121,69 @@ const UserManagement: React.FC = () => {
         </button>
       </div>
 
-      <div className="glass-panel" style={{ overflowX: 'auto', padding: 0 }}>
-        {loading ? (
-          <div style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>
-            Loading System Users...
+      {loading ? (
+        <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+          Loading System Users...
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          {/* Desktop Header */}
+          <div className="mobile-hide" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1.5fr 1fr 1fr 120px', 
+            padding: 'var(--spacing-sm) var(--spacing-md)', 
+            color: 'var(--color-outline)',
+            gap: 'var(--spacing-md)',
+            textAlign: 'center'
+          }}>
+            <span className="label-caps" style={{ textAlign: 'left' }}>Name</span>
+            <span className="label-caps">Username</span>
+            <span className="label-caps">Role</span>
+            <span className="label-caps" style={{ textAlign: 'right' }}>Actions</span>
           </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ backgroundColor: 'var(--color-surface-container)' }}>
-              <tr>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Name</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Username</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Role</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u, index) => (
-                <tr key={index} style={{ borderBottom: index !== users.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 600 }}>{u.Name}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }} className="text-dim">{u.Username}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                    <span className="label-caps" style={{ color: u.Role === 'Manager' ? 'var(--color-vibrant-green)' : 'var(--color-primary)' }}>
-                      {u.Role}
-                    </span>
-                  </td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'right' }}>
-                    <button onClick={() => handleOpenModal(u)} style={{ background: 'transparent', border: 'none', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px' }}><Edit size={18} /></button>
-                    <button onClick={() => handleDelete(u.Username)} style={{ background: 'transparent', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: '6px' }}><Trash2 size={18} /></button>
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan={4} style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--color-outline)' }}>No users found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+
+          {users.map((u, index) => (
+            <div 
+              key={index} 
+              className="glass-panel responsive-grid" 
+              style={{ 
+                gridTemplateColumns: '1.5fr 1fr 1fr 120px',
+                alignItems: 'center',
+                padding: 'var(--spacing-md)', 
+                gap: 'var(--spacing-md)',
+                backgroundColor: 'var(--color-surface-container)',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>{u.Name}</h3>
+                <div className="tablet-show text-dim" style={{ display: 'none', fontSize: '12px', marginTop: '2px' }}>
+                  @{u.Username}
+                </div>
+              </div>
+
+              <div className="mobile-hide text-dim">{u.Username}</div>
+
+              <div>
+                <span className="label-caps" style={{ color: u.Role === 'Manager' ? 'var(--color-vibrant-green)' : 'var(--color-primary)', fontSize: '11px' }}>
+                  {u.Role}
+                </span>
+              </div>
+
+              <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button onClick={() => handleOpenModal(u)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Edit size={16} /></button>
+                <button onClick={() => handleDelete(u.Username)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-error)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Trash2 size={16} /></button>
+              </div>
+            </div>
+          ))}
+          
+          {users.length === 0 && (
+            <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+              No users found.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* USER MODAL */}
       {showModal && (

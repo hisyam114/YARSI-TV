@@ -52,13 +52,13 @@ const ScheduleForm: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2 style={{ marginBottom: 'var(--spacing-md)' }}>Entri Jadwal Operasional</h2>
+    <div className="container-padding">
+      <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: 'clamp(20px, 4vw, 24px)' }}>Entri Jadwal Operasional</h2>
       
       <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', maxWidth: '800px', margin: '0 auto' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 200px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Schedule ID</label>
               <input 
                 type="text" 
@@ -77,7 +77,7 @@ const ScheduleForm: React.FC = () => {
                 }} 
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 2 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '2 1 300px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Program Name</label>
               <input 
                 type="text" 
@@ -98,8 +98,8 @@ const ScheduleForm: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 150px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Date</label>
               <input 
                 type="date" 
@@ -119,7 +119,7 @@ const ScheduleForm: React.FC = () => {
                 }} 
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 120px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Start Time</label>
               <input 
                 type="time" 
@@ -139,7 +139,7 @@ const ScheduleForm: React.FC = () => {
                 }} 
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 120px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>End Time</label>
               <input 
                 type="time" 
@@ -161,8 +161,8 @@ const ScheduleForm: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 200px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Location</label>
               <input 
                 type="text" 
@@ -181,7 +181,7 @@ const ScheduleForm: React.FC = () => {
                 }} 
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 200px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>PIC (Person in Charge)</label>
               <input 
                 type="text" 
@@ -200,7 +200,7 @@ const ScheduleForm: React.FC = () => {
                 }} 
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 150px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Status</label>
               <select 
                 value={formData.Status}
@@ -224,7 +224,7 @@ const ScheduleForm: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
             <button 
               type="button"
               onClick={() => navigate('/admin')}
@@ -237,7 +237,8 @@ const ScheduleForm: React.FC = () => {
                 borderRadius: 'var(--radius-base)',
                 fontWeight: 600,
                 cursor: isSaving ? 'not-allowed' : 'pointer',
-                opacity: isSaving ? 0.5 : 1
+                opacity: isSaving ? 0.5 : 1,
+                flex: '1 1 auto'
               }}
             >
               BATAL
@@ -253,7 +254,8 @@ const ScheduleForm: React.FC = () => {
                 borderRadius: 'var(--radius-base)',
                 fontWeight: 600,
                 cursor: isSaving ? 'not-allowed' : 'pointer',
-                opacity: isSaving ? 0.5 : 1
+                opacity: isSaving ? 0.5 : 1,
+                flex: '1 1 auto'
               }}
             >
               {isSaving ? 'MENYIMPAN...' : 'SIMPAN JADWAL'}

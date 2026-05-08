@@ -99,9 +99,16 @@ const InventoryManagement: React.FC = () => {
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-        <h2>Master Equipment</h2>
+    <div className="container-padding" style={{ maxWidth: '1440px', margin: '0 auto' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: 'var(--spacing-md)',
+        flexWrap: 'wrap',
+        gap: 'var(--spacing-sm)'
+      }}>
+        <h2 style={{ margin: 0, fontSize: 'clamp(20px, 4vw, 24px)' }}>Master Equipment</h2>
         <button 
           onClick={() => handleOpenModal()}
           style={{ 
@@ -114,7 +121,8 @@ const InventoryManagement: React.FC = () => {
             padding: 'var(--spacing-sm) var(--spacing-md)',
             borderRadius: 'var(--radius-base)',
             fontWeight: 600,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontSize: '14px'
           }}
         >
           <Plus size={18} />
@@ -122,52 +130,89 @@ const InventoryManagement: React.FC = () => {
         </button>
       </div>
 
-      <div className="glass-panel" style={{ overflowX: 'auto', padding: 0 }}>
-        {loading ? (
-          <div style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>Loading Equipment...</div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ backgroundColor: 'var(--color-surface-container)' }}>
-              <tr>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>ID</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Category</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Item Name</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Condition</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Bought Date</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)' }}>Notes</th>
-                <th className="label-caps" style={{ padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)', color: 'var(--color-outline)', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {equipment.map((item, i) => (
-                <tr key={i} style={{ borderBottom: i !== equipment.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}><small className="text-dim">{item.Equipment_ID}</small></td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{item.Category}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontWeight: 600 }}>{item.Item_Name}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
-                    <span style={{
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      backgroundColor: item.Condition?.toLowerCase() === 'good' ? 'rgba(0, 255, 65, 0.1)' : 'rgba(255, 0, 0, 0.1)',
-                      color: item.Condition?.toLowerCase() === 'good' ? 'var(--color-vibrant-green)' : 'var(--color-error)'
-                    }}>
-                      {item.Condition}
-                    </span>
-                  </td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', fontSize: '14px' }}>{formatDateToDDMMYYYY(item.Bought_Date)}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', color: 'var(--color-outline)', fontSize: '14px' }}>{item.Notes}</td>
-                  <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'right' }}>
-                    <button onClick={() => handleOpenModal(item)} style={{ background: 'transparent', border: 'none', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px' }}><Edit size={18} /></button>
-                    <button onClick={() => handleDelete(item.Equipment_ID)} style={{ background: 'transparent', border: 'none', color: 'var(--color-error)', cursor: 'pointer', padding: '6px' }}><Trash2 size={18} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {loading ? (
+        <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>Loading Equipment...</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          {/* Desktop Header */}
+          <div className="mobile-hide" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px', 
+            padding: 'var(--spacing-sm) var(--spacing-md)', 
+            color: 'var(--color-outline)',
+            gap: 'var(--spacing-md)',
+            textAlign: 'center'
+          }}>
+            <span className="label-caps">ID</span>
+            <span className="label-caps">Category</span>
+            <span className="label-caps" style={{ textAlign: 'left' }}>Item Name</span>
+            <span className="label-caps">Condition</span>
+            <span className="label-caps">Bought Date</span>
+            <span className="label-caps">Notes</span>
+            <span className="label-caps" style={{ textAlign: 'right' }}>Actions</span>
+          </div>
+
+          {equipment.map((item, i) => (
+            <div 
+              key={i} 
+              className="glass-panel responsive-grid" 
+              style={{ 
+                gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px',
+                alignItems: 'center',
+                padding: 'var(--spacing-md)', 
+                gap: 'var(--spacing-md)',
+                backgroundColor: 'var(--color-surface-container)',
+                textAlign: 'center'
+              }}
+            >
+              <div className="mobile-hide"><small className="text-dim">{item.Equipment_ID}</small></div>
+              
+              <div style={{ textAlign: 'left' }}>
+                <div className="label-caps tablet-show" style={{ display: 'none', fontSize: '10px', color: 'var(--color-outline)', marginBottom: '4px' }}>
+                  {item.Category} • {item.Equipment_ID}
+                </div>
+                <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Item_Name}</h3>
+              </div>
+
+              <div className="mobile-hide label-caps" style={{ fontSize: '11px' }}>{item.Category}</div>
+
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  backgroundColor: item.Condition?.toLowerCase() === 'good' ? 'rgba(0, 255, 65, 0.1)' : 'rgba(255, 0, 0, 0.1)',
+                  color: item.Condition?.toLowerCase() === 'good' ? 'var(--color-vibrant-green)' : 'var(--color-error)',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {item.Condition}
+                </span>
+              </div>
+
+              <div className="mobile-hide" style={{ fontSize: '13px' }}>{formatDateToDDMMYYYY(item.Bought_Date)}</div>
+              
+              <div style={{ textAlign: 'left' }}>
+                <div className="text-dim" style={{ fontSize: '13px' }}>{item.Notes}</div>
+                <div className="tablet-show text-dim" style={{ display: 'none', fontSize: '11px', marginTop: '4px' }}>
+                  Purchased: {formatDateToDDMMYYYY(item.Bought_Date)}
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button onClick={() => handleOpenModal(item)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Edit size={16} /></button>
+                <button onClick={() => handleDelete(item.Equipment_ID)} style={{ background: 'var(--color-surface-container-high)', border: '1px solid var(--color-border)', color: 'var(--color-error)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Trash2 size={16} /></button>
+              </div>
+            </div>
+          ))}
+          
+          {equipment.length === 0 && (
+            <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+              No equipment found.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Add Item Modal */}
       {showAddModal && (

@@ -76,11 +76,13 @@ const LandingPage: React.FC = () => {
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        padding: 'var(--spacing-lg) 5%',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)'
+        padding: 'clamp(1rem, 5vw, 2.5rem) 5%',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
+        flexWrap: 'wrap',
+        gap: '1rem'
       }}>
-        <div>
-          <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0 }}>YARSI TV</h1>
+        <div style={{ flex: '1 1 auto' }}>
+          <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0, fontSize: 'clamp(24px, 6vw, 48px)' }}>YARSI TV</h1>
           <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
         </div>
         <a href="#/login" style={{ 
@@ -93,7 +95,8 @@ const LandingPage: React.FC = () => {
           fontWeight: 600,
           textDecoration: 'none',
           transition: 'all 0.2s ease',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+          boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+          fontSize: '14px'
         }}>
           Control Room Login
         </a>
@@ -101,7 +104,7 @@ const LandingPage: React.FC = () => {
 
       {/* Jumbotron Carousel */}
       <div style={{ 
-        height: '60vh', 
+        height: 'min(60vh, 400px)', 
         width: '100%', 
         position: 'relative', 
         overflow: 'hidden',
@@ -130,8 +133,8 @@ const LandingPage: React.FC = () => {
       </div>
 
       {/* Main Content - Schedules List Mode */}
-      <section style={{ padding: '0 5%', maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
-        <h2 style={{ marginBottom: 'var(--spacing-md)', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>Live & Upcoming Broadcasts</h2>
+      <section className="container-padding" style={{ maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
+        <h2 style={{ marginBottom: 'var(--spacing-md)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', textAlign: 'center' }}>Live & Upcoming Broadcasts</h2>
         
         {loading ? (
           <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
@@ -139,8 +142,8 @@ const LandingPage: React.FC = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-            {/* Header Row for the Grid */}
-            <div style={{ 
+            {/* Header Row for the Grid - Hidden on mobile */}
+            <div className="mobile-hide" style={{ 
               display: 'grid', 
               gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px', 
               padding: 'var(--spacing-sm) var(--spacing-md)', 
@@ -162,8 +165,7 @@ const LandingPage: React.FC = () => {
               const isOngoing = item.Status?.toLowerCase() === 'ongoing';
               
               return (
-                <div key={index} className="glass-panel" style={{ 
-                  display: 'grid',
+                <div key={index} className="glass-panel responsive-grid" style={{ 
                   gridTemplateColumns: '180px 120px 2fr 1.5fr 1fr 120px',
                   alignItems: 'center',
                   padding: 'var(--spacing-md)', 
@@ -174,28 +176,42 @@ const LandingPage: React.FC = () => {
                   backgroundColor: isOngoing ? 'var(--color-surface-container-high)' : 'var(--color-surface-container)',
                   textAlign: 'center'
                 }}>
-                  {/* Time */}
-                  <div style={{ fontWeight: 600, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
-                    {item.Start_Time} - {item.End_Time}
+                  {/* Time & Date Group for Mobile */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
+                      {item.Start_Time} - {item.End_Time}
+                    </div>
+                    <div className="text-dim label-caps" style={{ fontSize: '11px' }}>
+                      {formatDateToDDMMYYYY(item.Date)}
+                    </div>
                   </div>
 
-                  {/* Date */}
-                  <div className="text-dim label-caps">
+                  {/* Date - Desktop Only */}
+                  <div className="mobile-hide text-dim label-caps">
                     {formatDateToDDMMYYYY(item.Date)}
                   </div>
 
                   {/* Program Name */}
-                  <h3 style={{ margin: 0, fontSize: '18px', color: isOngoing ? 'white' : 'var(--color-on-surface)', textAlign: 'left' }}>
-                    {item.Program_Name}
-                  </h3>
+                  <div style={{ textAlign: 'left' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
+                      {item.Program_Name}
+                    </h3>
+                    {/* Location & PIC for Mobile */}
+                    <div className="text-dim" style={{ fontSize: '13px', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <span className="mobile-hide" style={{ display: 'none' }}></span> {/* Placeholder */}
+                      <span className="tablet-show" style={{ display: 'block' }}>
+                        @ {item.Location} • PIC: {item.PIC}
+                      </span>
+                    </div>
+                  </div>
 
-                  {/* Location */}
-                  <div className="text-dim">
+                  {/* Location - Desktop Only */}
+                  <div className="mobile-hide text-dim">
                     {item.Location}
                   </div>
 
-                  {/* PIC */}
-                  <div className="text-dim">
+                  {/* PIC - Desktop Only */}
+                  <div className="mobile-hide text-dim">
                     {item.PIC}
                   </div>
 
@@ -211,7 +227,7 @@ const LandingPage: React.FC = () => {
                       gap: '6px',
                       boxShadow: isOngoing ? `0 0 10px ${statusBg}` : 'none'
                     }}>
-                      {isOngoing && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                      {isOngoing && <div className="pulse-dot" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
                       {item.Status}
                     </span>
                   </div>
@@ -237,15 +253,21 @@ const LandingPage: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 'var(--spacing-md)'
+        gap: 'var(--spacing-md)',
+        textAlign: 'center'
       }}>
-        <div style={{ display: 'flex', gap: 'var(--spacing-xl)', alignItems: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: 'var(--spacing-xl)', 
+          alignItems: 'center',
+          flexDirection: 'column'
+        }}>
           <div>
             <h2 style={{ margin: 0, color: 'white' }}>YARSI TV</h2>
             <p className="text-dim" style={{ margin: 0 }}>Universitas YARSI Broadcast Network</p>
           </div>
-          <div style={{ height: '40px', width: '1px', backgroundColor: 'var(--color-border)' }} />
-          <div style={{ display: 'flex', gap: 'var(--spacing-lg)' }}>
+          <div className="mobile-hide" style={{ height: '40px', width: '1px', backgroundColor: 'var(--color-border)' }} />
+          <div style={{ display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href="https://www.yarsi.ac.id/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>yarsi.ac.id</a>
             <a href="#/login" style={{ color: 'var(--color-outline)', textDecoration: 'none' }}>Admin Portal</a>
             <a href="#" style={{ color: 'var(--color-outline)', textDecoration: 'none' }}>Schedule Contact</a>

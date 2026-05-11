@@ -223,16 +223,27 @@ const LandingPage: React.FC = () => {
         position: 'absolute', 
         top: 0, left: 0, right: 0, 
         zIndex: 10,
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: 'clamp(1rem, 5vw, 2.5rem) 5%',
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
-        padding: 'clamp(1rem, 5vw, 2.5rem) 5%'
+        flexWrap: 'wrap',
+        gap: '1rem'
       }}>
-        {/* Navigation Menu - Top Center */}
+        {/* Logo - Left */}
+        <div style={{ flex: '0 1 auto' }}>
+          <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0, fontSize: 'clamp(24px, 6vw, 48px)' }}>YARSI TV</h1>
+          <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
+        </div>
+
+        {/* Navigation Menu - Center */}
         <nav style={{ 
           display: 'flex', 
           alignItems: 'center', 
-          justifyContent: 'center',
           gap: 'clamp(1.5rem, 4vw, 3rem)',
-          marginBottom: 'var(--spacing-md)'
+          justifyContent: 'center',
+          flex: '1 1 auto'
         }}>
           <button 
             onClick={() => scrollToSection('schedule-section')}
@@ -316,46 +327,34 @@ const LandingPage: React.FC = () => {
           </button>
         </nav>
 
-        {/* Logo and Login - Bottom Row */}
-        <div style={{
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          <div style={{ flex: '1 1 auto' }}>
-            <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0, fontSize: 'clamp(24px, 6vw, 48px)' }}>YARSI TV</h1>
-            <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
-          </div>
-          <a href="#/login" style={{ 
-            background: 'rgba(0, 155, 90, 0.5)', 
-            backdropFilter: 'blur(10px)',
-            color: 'white',
-            border: '1px solid rgba(2, 122, 72, 0.5)',
-            padding: 'var(--spacing-sm) var(--spacing-md)',
-            borderRadius: 'var(--radius-base)',
-            fontWeight: 600,
-            textDecoration: 'none',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-            fontSize: '14px',
-            flex: '0 1 auto'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 155, 90, 0.8)';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(0, 155, 90, 0.5)';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-          }}
-          >
-            YARSI TV Login
-          </a>
-        </div>
+        {/* Login Button - Right */}
+        <a href="#/login" style={{ 
+          background: 'rgba(0, 155, 90, 0.5)', 
+          backdropFilter: 'blur(10px)',
+          color: 'white',
+          border: '1px solid rgba(2, 122, 72, 0.5)',
+          padding: 'var(--spacing-sm) var(--spacing-md)',
+          borderRadius: 'var(--radius-base)',
+          fontWeight: 600,
+          textDecoration: 'none',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+          fontSize: '14px',
+          flex: '0 1 auto'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 155, 90, 0.8)';
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(0, 155, 90, 0.5)';
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+        }}
+        >
+          YARSI TV Login
+        </a>
       </header>
 
       {/* Jumbotron Carousel */}

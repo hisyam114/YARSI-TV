@@ -53,6 +53,24 @@ const BlogManagement: React.FC = () => {
     loadData();
   }, []);
 
+  const getNextArticleId = (existingArticles: BlogArticle[]): string => {
+    if (existingArticles.length === 0) return 'ART_001';
+    
+    // Extract numeric part from existing IDs (e.g., ART_001, ART_002)
+    const ids = existingArticles
+      .map(a => {
+        const match = a.Article_ID.match(/ART_?(\d+)/i);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter(num => num > 0);
+    
+    if (ids.length === 0) return 'ART_001';
+    
+    const maxId = Math.max(...ids);
+    const nextNum = maxId + 1;
+    return `ART_${nextNum.toString().padStart(3, '0')}`;
+  };
+
   const handleOpenModal = (article?: BlogArticle) => {
     if (article) {
       setFormData(article);
@@ -61,15 +79,23 @@ const BlogManagement: React.FC = () => {
       // Get current user for author field
       const session = localStorage.getItem('yarsi_user');
       const userName = session ? JSON.parse(session).name : 'YARSI TV Team';
-      setFormData({ ...initialFormState, Author: userName });
+      
+      // Auto-generate next sequential Article ID
+      const nextId = getNextArticleId(articles);
+      
+      setFormData({ 
+        ...initialFormState, 
+        Author: userName,
+        Article_ID: nextId
+      });
       setIsEditing(false);
     }
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (!formData.Article_ID || !formData.Title || !formData.Summary) {
-      alert("Please fill Article ID, Title, and Summary");
+    if (!formData.Title || !formData.Summary) {
+      showToast('Please fill Title and Summary', 'error');
       return;
     }
     setIsSaving(true);
@@ -84,11 +110,6 @@ const BlogManagement: React.FC = () => {
         showToast('Failed to update article.', 'error');
       }
     } else {
-      if (articles.find(a => a.Article_ID === formData.Article_ID)) {
-        alert("Article ID already exists!");
-        setIsSaving(false);
-        return;
-      }
       const success = await executeApi('Articles', 'create', formData);
       if (success) {
         setArticles(prev => [formData, ...prev]);
@@ -374,8 +395,8 @@ const BlogManagement: React.FC = () => {
             <form style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                  <label className="label-caps text-dim" style={{ color: 'var(--color-outline)' }}>Article ID *</label>
-                  <input type="text" value={formData.Article_ID} onChange={e => setFormData({...formData, Article_ID: e.target.value})} disabled={isEditing} placeholder="e.g. ART-001" style={{ background: 'var(--color-surface-container)', color: 'var(--color-on-surface)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', opacity: isEditing ? 0.5 : 1 }} />
+                  <label className="label-caps text-dim" style={{ color: 'var(--color-outline)' }}>Article ID <span style={{ color: 'var(--color-primary)', fontSize: '10px' }}>(auto-generated)</span></label>
+                  <input type="text" value={formData.Article_ID} readOnly placeholder="Auto-generated" style={{ background: 'var(--color-surface-container)', color: 'var(--color-primary)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', fontWeight: 600 }} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                   <label className="label-caps text-dim" style={{ color: 'var(--color-outline)' }}>Category</label>

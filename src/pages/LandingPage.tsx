@@ -34,6 +34,7 @@ const LandingPage: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD format
   const [showLogoutExit, setShowLogoutExit] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     // Carousel Auto-play
@@ -41,6 +42,20 @@ const LandingPage: React.FC = () => {
       setCurrentImageIndex((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Handle scroll for sticky navbar
+    const handleScroll = () => {
+      if (window.scrollY > 100) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -220,21 +235,43 @@ const LandingPage: React.FC = () => {
       
       {/* Floating Header */}
       <header style={{ 
-        position: 'absolute', 
+        position: 'fixed', 
         top: 0, left: 0, right: 0, 
-        zIndex: 10,
+        zIndex: 1000,
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        padding: 'clamp(1rem, 5vw, 2.5rem) 5%',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
+        padding: isScrolled ? 'clamp(0.5rem, 3vw, 1rem) 5%' : 'clamp(1rem, 5vw, 2.5rem) 5%',
+        background: isScrolled 
+          ? 'linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 100%)' 
+          : 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%)',
+        backdropFilter: isScrolled ? 'blur(10px)' : 'none',
+        boxShadow: isScrolled ? '0 4px 20px rgba(0,0,0,0.3)' : 'none',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         flexWrap: 'wrap',
         gap: '1rem'
       }}>
         {/* Logo - Left */}
-        <div style={{ flex: '0 1 auto' }}>
-          <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0, fontSize: 'clamp(24px, 6vw, 48px)' }}>YARSI TV</h1>
-          <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
+        <div style={{ flex: '0 1 auto', transition: 'transform 0.3s ease' }}>
+          <h1 style={{ 
+            color: 'white', 
+            textShadow: '0 2px 10px rgba(0,0,0,0.5)', 
+            margin: 0, 
+            fontSize: isScrolled ? 'clamp(20px, 5vw, 36px)' : 'clamp(24px, 6vw, 48px)',
+            transition: 'font-size 0.3s ease'
+          }}>YARSI TV</h1>
+          <p 
+            className="label-caps" 
+            style={{ 
+              color: 'rgba(255,255,255,0.8)', 
+              textShadow: '0 1px 5px rgba(0,0,0,0.5)', 
+              margin: 0,
+              opacity: isScrolled ? 0 : 1,
+              maxHeight: isScrolled ? '0px' : '30px',
+              overflow: 'hidden',
+              transition: 'all 0.3s ease'
+            }}
+          >Live Broadcast Network</p>
         </div>
 
         {/* Navigation Menu - Center */}
@@ -357,7 +394,8 @@ const LandingPage: React.FC = () => {
         </a>
       </header>
 
-      {/* Jumbotron Carousel */}
+      {/* Add padding to account for fixed header */}
+      <div style={{ height: isScrolled ? '60px' : '120px', transition: 'height 0.3s ease' }} />
       <div style={{ 
         height: 'min(60vh, 400px)', 
         width: '100%', 

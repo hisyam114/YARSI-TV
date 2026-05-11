@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchBlogData, type ScheduleItem, type BlogArticle } from '../services/googleSheets';
-import { parseSheetDate, formatDateToDDMMYYYY } from '../utils/dateUtils';
+import { parseSheetDate, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
 import { clearLogoutTransition } from '../utils/auth';
 
 const CAROUSEL_IMAGES = [
@@ -522,7 +522,7 @@ const LandingPage: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             {/* Desktop Header Row */}
             <div className="desktop-grid" style={{ 
-              gridTemplateColumns: '160px 110px 2fr 1.5fr 1fr 120px', 
+              gridTemplateColumns: '80px 110px 160px 2fr 1.5fr 1fr 120px', 
               padding: 'var(--spacing-sm) var(--spacing-md)', 
               color: 'var(--color-outline)',
               gap: 'var(--spacing-md)',
@@ -533,6 +533,7 @@ const LandingPage: React.FC = () => {
             }}>
               <span className="label-caps">Time</span>
               <span className="label-caps">Date</span>
+              <span className="label-caps">Day</span>
               <span className="label-caps" style={{ textAlign: 'left' }}>Program Name</span>
               <span className="label-caps">Location</span>
               <span className="label-caps">PIC</span>
@@ -566,7 +567,7 @@ const LandingPage: React.FC = () => {
                 >
                   {/* Desktop layout: full grid */}
                   <div className="desktop-grid" style={{ 
-                    gridTemplateColumns: '160px 110px 2fr 1.5fr 1fr 120px',
+                    gridTemplateColumns: '80px 110px 160px 2fr 1.5fr 1fr 120px',
                     alignItems: 'center',
                     gap: 'var(--spacing-md)',
                     textAlign: 'center'
@@ -576,6 +577,9 @@ const LandingPage: React.FC = () => {
                     </div>
                     <div className="text-dim label-caps" style={{ fontSize: '12px' }}>
                       {formatDateToDDMMYYYY(item.Date)}
+                    </div>
+                    <div style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '13px' }}>
+                      {item.DayName || getDayNameIndonesian(item.Date)}
                     </div>
                     <h3 style={{ margin: 0, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)', textAlign: 'left' }}>
                       {item.Program_Name}

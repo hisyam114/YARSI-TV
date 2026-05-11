@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchEquipmentData, executeApi, type ScheduleItem, type EquipmentItem } from '../services/googleSheets';
 import { X, CheckCircle, Edit, Trash2, Save, Radio } from 'lucide-react';
 import { showToast } from '../utils/toast';
-import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY } from '../utils/dateUtils';
+import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
 import { getSession } from '../utils/auth';
 
 const getStatusColor = (status?: string) => {
@@ -241,7 +241,7 @@ const AdminDashboard: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
           <div className="desktop-grid" style={{ 
-            gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px', 
+            gridTemplateColumns: '100px 2fr 80px 120px 150px 1.5fr 1fr 120px', 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
             color: 'var(--color-outline)',
             gap: 'var(--spacing-md)',
@@ -252,6 +252,7 @@ const AdminDashboard: React.FC = () => {
           }}>
             <span className="label-caps">ID</span>
             <span className="label-caps" style={{ textAlign: 'left' }}>Program Name</span>
+            <span className="label-caps">Day</span>
             <span className="label-caps">Date</span>
             <span className="label-caps">Time</span>
             <span className="label-caps">Location</span>
@@ -285,7 +286,7 @@ const AdminDashboard: React.FC = () => {
                 }}
               >
                 <div className="desktop-grid" style={{
-                  gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px',
+                  gridTemplateColumns: '100px 2fr 80px 120px 150px 1.5fr 1fr 120px',
                   alignItems: 'center',
                   gap: 'var(--spacing-md)',
                   textAlign: 'center'
@@ -294,6 +295,7 @@ const AdminDashboard: React.FC = () => {
                   <div style={{ textAlign: 'left' }}>
                     <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
                   </div>
+                  <small style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{item.DayName || getDayNameIndonesian(item.Date)}</small>
                   <small className="text-dim">{formatDateToDDMMYYYY(item.Date)}</small>
                   <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
                   <div className="text-dim">{item.Location}</div>
@@ -393,9 +395,26 @@ const AdminDashboard: React.FC = () => {
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">Date</div>
                 {isEditing ? (
-                  <input type="date" value={editFormData.Date} onChange={e => setEditFormData({...editFormData, Date: e.target.value})} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%', colorScheme: 'dark' }} />
+                  <div>
+                    <input type="date" value={editFormData.Date} onChange={e => {
+                      const dayName = getDayNameIndonesian(e.target.value);
+                      setEditFormData({...editFormData, Date: e.target.value, DayName: dayName});
+                    }} style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%', colorScheme: 'dark' }} />
+                    {editFormData.DayName && (
+                      <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-primary)', fontWeight: 600 }}>
+                        {editFormData.DayName}
+                      </small>
+                    )}
+                  </div>
                 ) : (
-                  <div>{formatDateToDDMMYYYY(selectedEvent.Date)}</div>
+                  <div>
+                    <div>{formatDateToDDMMYYYY(selectedEvent.Date)}</div>
+                    {(selectedEvent.DayName || getDayNameIndonesian(selectedEvent.Date)) && (
+                      <small style={{ display: 'block', marginTop: '4px', color: 'var(--color-primary)', fontWeight: 600 }}>
+                        {selectedEvent.DayName || getDayNameIndonesian(selectedEvent.Date)}
+                      </small>
+                    )}
+                  </div>
                 )}
               </div>
               

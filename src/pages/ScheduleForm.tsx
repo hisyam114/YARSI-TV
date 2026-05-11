@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { executeApi, fetchScheduleData, type ScheduleItem } from '../services/googleSheets';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
+import { getDayNameIndonesian } from '../utils/dateUtils';
 
 const generateScheduleId = (count: number): string => {
   return `SCH-${String(count).padStart(3, '0')}`;
@@ -15,6 +16,7 @@ const ScheduleForm: React.FC = () => {
     Schedule_ID: 'SCH-001',
     Program_Name: '',
     Date: '',
+    DayName: '',
     Start_Time: '',
     End_Time: '',
     Location: '',
@@ -105,7 +107,10 @@ const ScheduleForm: React.FC = () => {
                 type="date" 
                 required
                 value={formData.Date}
-                onChange={e => setFormData({...formData, Date: e.target.value})}
+                onChange={e => {
+                  const dayName = getDayNameIndonesian(e.target.value);
+                  setFormData({...formData, Date: e.target.value, DayName: dayName});
+                }}
                 style={{
                   background: 'var(--color-surface-container)',
                   border: '1px solid var(--color-border)',
@@ -118,6 +123,11 @@ const ScheduleForm: React.FC = () => {
                   colorScheme: 'dark'
                 }} 
               />
+              {formData.DayName && (
+                <small style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                  {formData.DayName}
+                </small>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 120px' }}>
               <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Start Time</label>

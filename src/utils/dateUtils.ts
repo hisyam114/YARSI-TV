@@ -70,3 +70,16 @@ export const formatDateToDDMMYYYY = (dateStr?: string): string => {
   const yyyy = d.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 };
+
+/**
+ * Get Indonesian day name from a date string (YYYY-MM-DD format)
+ * Returns: Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu
+ */
+export const getDayNameIndonesian = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  const d = parseSheetDate(dateStr);
+  if (d.getTime() === 0) return '';
+  
+  const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  return dayNames[d.getDay()];
+};

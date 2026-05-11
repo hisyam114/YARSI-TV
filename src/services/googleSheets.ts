@@ -5,6 +5,7 @@ export interface ScheduleItem {
   Schedule_ID: string;
   Program_Name: string;
   Date: string;
+  DayName?: string;
   Start_Time: string;
   End_Time: string;
   Location: string;

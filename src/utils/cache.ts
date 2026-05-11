@@ -11,6 +11,7 @@ export interface CacheEntry<T> {
 
 const CACHE_PREFIX = 'yarsi_tv_cache_';
 const CACHE_VERSION_KEY = 'yarsi_tv_cache_version';
+const AUTO_CLEAR_INTERVAL = 5000; // 5 seconds
 
 // Cache keys for different data types
 export const CACHE_KEYS = {
@@ -19,6 +20,9 @@ export const CACHE_KEYS = {
   USERS: `${CACHE_PREFIX}users`,
   BLOGS: `${CACHE_PREFIX}blogs`,
 } as const;
+
+// Track if auto-clear is active
+let autoClearIntervalId: number | null = null;
 
 /**
  * Get the current cache version (timestamp of last spreadsheet update)
@@ -97,6 +101,7 @@ export const clearAllCache = (): void => {
   Object.values(CACHE_KEYS).forEach(key => {
     localStorage.removeItem(key);
   });
+  console.log('[Cache] All cache cleared');
 };
 
 /**
@@ -114,4 +119,48 @@ export const invalidateCache = (): string => {
   const newVersion = generateNewCacheVersion();
   console.log('[Cache] Invalidated cache with new version:', newVersion);
   return newVersion;
+};
+
+/**
+ * Start auto-clear cache every 5 seconds
+ * This ensures fresh data is fetched regularly
+ */
+export const startAutoClearCache = (): void => {
+  if (autoClearIntervalId !== null) return;
+  
+  console.log('[Cache] Starting auto-clear interval (5 seconds)');
+  autoClearIntervalId = window.setInterval(() => {
+    clearAllCache();
+  }, AUTO_CLEAR_INTERVAL);
+};
+
+/**
+ * Stop auto-clear cache interval
+ */
+export const stopAutoClearCache = (): void => {
+  if (autoClearIntervalId !== null) {
+    console.log('[Cache] Stopping auto-clear interval');
+    window.clearInterval(autoClearIntervalId);
+    autoClearIntervalId = null;
+  }
+};
+
+/**
+ * Clear cache on page unload/refresh
+ * This ensures fresh data is fetched when user returns
+ */
+export const setupCacheRefreshOnReload = (): void => {
+  // Clear cache when page is about to unload
+  window.addEventListener('beforeunload', () => {
+    clearAllCache();
+    console.log('[Cache] Cache cleared on page unload');
+  });
+
+  // Also clear on visibility change (when user switches tabs and comes back)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      console.log('[Cache] Page became visible, clearing cache for fresh data');
+      clearAllCache();
+    }
+  });
 };

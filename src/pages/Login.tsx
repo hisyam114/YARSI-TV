@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchUsersData } from '../services/googleSheets';
 import { setSession, setLoginTransition, isAuthenticated } from '../utils/auth';
+import { comparePassword } from '../utils/password';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -27,9 +28,17 @@ const Login: React.FC = () => {
 
     try {
       const users = await fetchUsersData();
-      const user = users.find(u => u.Username === username && u.Password === password);
+      const user = users.find(u => u.Username === username);
 
-      if (user) {
+      if (user && user.Password) {
+        // Compare password with hashed password
+        const isValid = await comparePassword(password, user.Password);
+        
+        if (!isValid) {
+          setError('Invalid username or password');
+          setLoading(false);
+          return;
+        }
         // Use auth utility to set session
         setSession({ 
           name: user.Name, 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchUsersData, executeApi, type UserItem } from '../services/googleSheets';
 import { Edit, Trash2, Save, X, UserPlus, Shield } from 'lucide-react';
 import { showToast } from '../utils/toast';
+import { hashPassword } from '../utils/password';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -45,10 +46,15 @@ const UserManagement: React.FC = () => {
     }
 
     setIsSaving(true);
+    
+    // Hash the password before saving
+    const hashedPassword = await hashPassword(formData.Password);
+    const dataToSave = { ...formData, Password: hashedPassword };
+    
     if (isEditing) {
-      const success = await executeApi('Users', 'update', formData);
+      const success = await executeApi('Users', 'update', dataToSave);
       if (success) {
-        setUsers(prev => prev.map(u => u.Username === formData.Username ? formData : u));
+        setUsers(prev => prev.map(u => u.Username === formData.Username ? dataToSave : u));
         setShowModal(false);
         showToast(`User "${formData.Name}" updated successfully.`, 'success');
       } else {
@@ -62,9 +68,9 @@ const UserManagement: React.FC = () => {
         return;
       }
       
-      const success = await executeApi('Users', 'create', formData);
+      const success = await executeApi('Users', 'create', dataToSave);
       if (success) {
-        setUsers(prev => [...prev, formData]);
+        setUsers(prev => [...prev, dataToSave]);
         setShowModal(false);
         showToast(`User "${formData.Name}" created successfully.`, 'success');
       } else {

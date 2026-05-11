@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Key, Save, ArrowLeft } from 'lucide-react';
 import { showToast } from '../utils/toast';
 import { fetchUsersData, executeApi, type UserItem } from '../services/googleSheets';
+import { hashPassword, comparePassword } from '../utils/password';
 
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
@@ -63,17 +64,21 @@ const ChangePassword: React.FC = () => {
         return;
       }
 
-      // Verify old password matches
-      if (userData.Password !== oldPassword) {
+      // Verify old password matches (compare with hashed password)
+      const isValidPassword = await comparePassword(oldPassword, userData.Password || '');
+      if (!isValidPassword) {
         setError('Old password is incorrect.');
         setLoading(false);
         return;
       }
 
+      // Hash the new password before saving
+      const hashedPassword = await hashPassword(newPassword);
+
       // Update password in spreadsheet
       const updatedUser: UserItem = {
         ...userData,
-        Password: newPassword
+        Password: hashedPassword
       };
 
       const success = await executeApi('Users', 'update', updatedUser);

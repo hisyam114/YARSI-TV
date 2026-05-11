@@ -3,6 +3,7 @@ import './App.css';
 
 // Pages
 import LandingPage from './pages/LandingPage';
+import ArticleDetail from './pages/ArticleDetail';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import InventoryManagement from './pages/InventoryManagement';
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/article/:articleId" element={<ArticleDetail />} />
           <Route path="/login" element={<Login />} />
 
           {/* Admin Routes with Layout */}

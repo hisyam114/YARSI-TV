@@ -703,6 +703,7 @@ const LandingPage: React.FC = () => {
                 return (
                   <article 
                     key={article.Article_ID}
+                    onClick={() => navigate(`/article/${article.Article_ID}`)}
                     className="glass-panel"
                     style={{ 
                       background: 'var(--color-surface-container)',
@@ -873,6 +874,10 @@ const LandingPage: React.FC = () => {
                           alignItems: 'center',
                           gap: '4px',
                           transition: 'all 0.2s ease'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/article/${article.Article_ID}`);
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = 'var(--color-primary)';

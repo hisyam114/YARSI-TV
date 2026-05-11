@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchBlogData, type ScheduleItem, type BlogArticle } from '../services/googleSheets';
 import { parseSheetDate, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
 import { clearLogoutTransition } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
 
 const CAROUSEL_IMAGES = [
   'images/jumbotron_studio_control_1778141117172.png',
@@ -28,6 +29,7 @@ const getStatusBg = (status?: string) => {
 };
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [articles, setArticles] = useState<BlogArticle[]>([]);
   const [loading, setLoading] = useState(true);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Calendar, Package, LogOut, Users, X, Shield } from 'lucide-react';
 import ToastContainer from './ToastContainer';
+import { getSession, clearSession, setLogoutTransition, clearLoginTransition } from '../utils/auth';
 
 const AdminLayout: React.FC = () => {
   const location = useLocation();
@@ -15,24 +16,20 @@ const AdminLayout: React.FC = () => {
   const [logoutText, setLogoutText] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('yarsi_user');
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-      } catch (e) {
-        console.error('Failed to parse user session', e);
-        navigate('/login');
-      }
+    // Check session on mount and on page reload
+    const session = getSession();
+    
+    if (session) {
+      setUser(session);
     } else {
+      // No valid session - redirect to login
       navigate('/login');
+      return;
     }
     
     // Check if we need to show login exit animation
-    const showTransition = localStorage.getItem('show_login_transition');
-    if (showTransition === 'true') {
+    if (clearLoginTransition()) {
       setShowLoginExit(true);
-      localStorage.removeItem('show_login_transition');
       // Remove the overlay after animation completes
       setTimeout(() => {
         setShowLoginExit(false);
@@ -55,8 +52,8 @@ const AdminLayout: React.FC = () => {
 
   const handleLogout = () => {
     // Set flag for landing page to know we're logging out
-    localStorage.setItem('show_logout_transition', 'true');
-    localStorage.removeItem('yarsi_user');
+    setLogoutTransition();
+    clearSession();
     
     // Show logout animation on admin page first (circle-IN: expand from 0% to 125%)
     setShowLogoutExit(true);

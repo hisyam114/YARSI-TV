@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchBlogData, type ScheduleItem, type BlogArticle } from '../services/googleSheets';
 import { parseSheetDate, formatDateToDDMMYYYY } from '../utils/dateUtils';
+import { clearLogoutTransition } from '../utils/auth';
 
 const CAROUSEL_IMAGES = [
   'images/jumbotron_studio_control_1778141117172.png',
@@ -60,12 +61,10 @@ const LandingPage: React.FC = () => {
 
   useEffect(() => {
     // Check if we need to show logout transition animation
-    const showTransition = localStorage.getItem('show_logout_transition');
-    if (showTransition === 'true') {
+    const showTransition = clearLogoutTransition();
+    if (showTransition) {
       // Immediately show green overlay with text (from admin navigation)
       setShowLogoutExit(true);
-      // Remove the flag so it doesn't replay
-      localStorage.removeItem('show_logout_transition');
       // Start circle-out animation after a brief delay (1s total)
       setTimeout(() => {
         setShowLogoutExit(false);

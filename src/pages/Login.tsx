@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchUsersData } from '../services/googleSheets';
+import { setSession, setLoginTransition, isAuthenticated } from '../utils/auth';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -10,6 +11,14 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showText, setShowText] = useState(false);
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // User has a valid session - redirect to admin
+      navigate('/admin');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,15 +30,16 @@ const Login: React.FC = () => {
       const user = users.find(u => u.Username === username && u.Password === password);
 
       if (user) {
-        localStorage.setItem('yarsi_user', JSON.stringify({ 
+        // Use auth utility to set session
+        setSession({ 
           name: user.Name, 
           role: user.Role, 
           username: user.Username,
           timestamp: new Date().getTime()
-        }));
+        });
         
         // Set flag for admin page to show exit animation
-        localStorage.setItem('show_login_transition', 'true');
+        setLoginTransition();
         
         // Start the circle transition animation
         setIsTransitioning(true);

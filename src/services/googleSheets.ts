@@ -151,8 +151,15 @@ export const fetchBlogData = async (): Promise<BlogArticle[]> => {
       skipEmptyLines: true,
       complete: (results) => {
         const data = results.data as BlogArticle[];
+        console.log('[Blog] Raw data from spreadsheet:', results.data);
+        console.log('[Blog] Column headers:', results.meta?.fields);
         console.log('[Blog] Fetched', data.length, 'articles from spreadsheet');
-        resolve(data);
+        
+        // Filter out empty rows
+        const filteredData = data.filter(item => item.Title || item.Article_ID);
+        console.log('[Blog] After filtering:', filteredData.length, 'articles');
+        
+        resolve(filteredData);
       },
       error: (error: Error) => {
         console.error("Error fetching Blog data:", error);

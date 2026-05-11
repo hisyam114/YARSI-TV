@@ -21,6 +21,12 @@ const AdminLayout: React.FC = () => {
     
     if (session) {
       setUser(session);
+      
+      // Role-based access control: Only Manager can access /admin/users
+      if (location.pathname === '/admin/users' && session.role !== 'Manager') {
+        navigate('/admin');
+        return;
+      }
     } else {
       // No valid session - redirect to login
       navigate('/login');
@@ -41,7 +47,7 @@ const AdminLayout: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   useEffect(() => {
     // Close sidebar on navigation

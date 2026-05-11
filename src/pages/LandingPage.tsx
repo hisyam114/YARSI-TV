@@ -522,7 +522,7 @@ const LandingPage: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             {/* Desktop Header Row */}
             <div className="desktop-grid" style={{ 
-              gridTemplateColumns: '80px 110px 160px 2fr 1.5fr 1fr 120px', 
+              gridTemplateColumns: '140px 110px 100px 2fr 1.5fr 1fr 120px', 
               padding: 'var(--spacing-sm) var(--spacing-md)', 
               color: 'var(--color-outline)',
               gap: 'var(--spacing-md)',
@@ -531,13 +531,13 @@ const LandingPage: React.FC = () => {
               backgroundColor: 'var(--color-surface-container-low)',
               borderRadius: 'var(--radius-sm)'
             }}>
-              <span className="label-caps">Time</span>
-              <span className="label-caps">Date</span>
-              <span className="label-caps">Day</span>
-              <span className="label-caps" style={{ textAlign: 'left' }}>Program Name</span>
-              <span className="label-caps">Location</span>
-              <span className="label-caps">PIC</span>
-              <span className="label-caps">Status</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>Time</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>Date</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>Day</span>
+              <span className="label-caps" style={{ textAlign: 'left', fontSize: '11px' }}>Program Name</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>Location</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>PIC</span>
+              <span className="label-caps" style={{ fontSize: '11px' }}>Status</span>
             </div>
 
             {filteredSchedule.map((item, index) => {
@@ -567,25 +567,25 @@ const LandingPage: React.FC = () => {
                 >
                   {/* Desktop layout: full grid */}
                   <div className="desktop-grid" style={{ 
-                    gridTemplateColumns: '80px 110px 160px 2fr 1.5fr 1fr 120px',
+                    gridTemplateColumns: '140px 110px 100px 2fr 1.5fr 1fr 120px',
                     alignItems: 'center',
                     gap: 'var(--spacing-md)',
                     textAlign: 'center'
                   }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: isOngoing ? 'white' : 'var(--color-on-surface)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '13px', color: isOngoing ? 'white' : 'var(--color-on-surface)', whiteSpace: 'nowrap' }}>
                       {item.Start_Time} - {item.End_Time}
                     </div>
-                    <div className="text-dim label-caps" style={{ fontSize: '12px' }}>
+                    <div className="text-dim" style={{ fontSize: '13px' }}>
                       {formatDateToDDMMYYYY(item.Date)}
                     </div>
                     <div style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '13px' }}>
                       {item.DayName || getDayNameIndonesian(item.Date)}
                     </div>
-                    <h3 style={{ margin: 0, fontSize: '16px', color: isOngoing ? 'white' : 'var(--color-on-surface)', textAlign: 'left' }}>
+                    <h3 style={{ margin: 0, fontSize: '15px', color: isOngoing ? 'white' : 'var(--color-on-surface)', textAlign: 'left', fontWeight: 600 }}>
                       {item.Program_Name}
                     </h3>
-                    <div className="text-dim">{item.Location}</div>
-                    <div className="text-dim">{item.PIC}</div>
+                    <div className="text-dim" style={{ fontSize: '13px' }}>{item.Location}</div>
+                    <div className="text-dim" style={{ fontSize: '13px' }}>{item.PIC}</div>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <span className="label-caps" style={{ 
                         padding: 'var(--spacing-xs) var(--spacing-sm)', 

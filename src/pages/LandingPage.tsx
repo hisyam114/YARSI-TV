@@ -129,6 +129,13 @@ const LandingPage: React.FC = () => {
 
   const filteredSchedule = getFilteredSchedules();
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', position: 'relative' }}>
       
@@ -228,6 +235,94 @@ const LandingPage: React.FC = () => {
           <h1 style={{ color: 'white', textShadow: '0 2px 10px rgba(0,0,0,0.5)', margin: 0, fontSize: 'clamp(24px, 6vw, 48px)' }}>YARSI TV</h1>
           <p className="label-caps" style={{ color: 'rgba(255,255,255,0.8)', textShadow: '0 1px 5px rgba(0,0,0,0.5)', margin: 0 }}>Live Broadcast Network</p>
         </div>
+
+        {/* Navigation Menu - Center */}
+        <nav style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 'clamp(1rem, 3vw, 2rem)',
+          justifyContent: 'center',
+          flex: '0 1 auto'
+        }}>
+          <button 
+            onClick={() => scrollToSection('schedule-section')}
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              color: 'rgba(255,255,255,0.9)',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-primary)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            Schedule
+          </button>
+          <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.3)' }} />
+          <button 
+            onClick={() => scrollToSection('articles-section')}
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              color: 'rgba(255,255,255,0.9)',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-primary)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            Articles
+          </button>
+          <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(255,255,255,0.3)' }} />
+          <button 
+            onClick={() => scrollToSection('footer-section')}
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              color: 'rgba(255,255,255,0.9)',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-primary)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            Contact
+          </button>
+        </nav>
+
         <a href="#/login" style={{ 
           background: 'rgba(0, 155, 90, 0.5)', 
           backdropFilter: 'blur(10px)',
@@ -239,7 +334,8 @@ const LandingPage: React.FC = () => {
           textDecoration: 'none',
           transition: 'all 0.2s ease',
           boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-          fontSize: '14px'
+          fontSize: '14px',
+          flex: '0 1 auto'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = 'rgba(0, 155, 90, 0.8)';
@@ -287,7 +383,7 @@ const LandingPage: React.FC = () => {
       </div>
 
       {/* Main Content - Schedules List Mode */}
-      <section className="container-padding" style={{ maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
+      <section id="schedule-section" className="container-padding" style={{ maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-md)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', textAlign: 'center' }}>Live & Upcoming Broadcasts</h2>
         
         {/* Date Filter */}
@@ -493,7 +589,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Articles / Blog Section */}
-      <section style={{ 
+      <section id="articles-section" style={{ 
         padding: 'var(--spacing-xl) 5%',
         background: 'linear-gradient(180deg, var(--color-background) 0%, var(--color-surface-container-lowest) 100%)'
       }}>
@@ -761,7 +857,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer style={{
+      <footer id="footer-section" style={{
         marginTop: 'auto',
         borderTop: '1px solid var(--color-border)',
         padding: 'var(--spacing-xl) 5%',

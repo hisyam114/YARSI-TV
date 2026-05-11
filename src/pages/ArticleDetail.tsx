@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchBlogData, type BlogArticle } from '../services/googleSheets';
-import { ArrowLeft, Calendar, Clock, User, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Share2 } from 'lucide-react';
 
 const ArticleDetail: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();

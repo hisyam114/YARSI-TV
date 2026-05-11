@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchEquipmentData, executeApi, type ScheduleItem, type EquipmentItem } from '../services/googleSheets';
-import { X, CheckCircle, Edit, Trash2, Save } from 'lucide-react';
+import { X, CheckCircle, Edit, Trash2, Save, Radio } from 'lucide-react';
 import { showToast } from '../utils/toast';
 import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY } from '../utils/dateUtils';
+import { getSession } from '../utils/auth';
 
 const getStatusColor = (status?: string) => {
   const s = status?.toLowerCase() || '';
@@ -17,18 +18,23 @@ const AdminDashboard: React.FC = () => {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isManager, setIsManager] = useState(false);
+  const [isGoingLive, setIsGoingLive] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  // Get today in YYYY-MM-DD (internal format) for filtering
   const getTodayISO = () => new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    const session = getSession();
+    setIsManager(session?.role === 'Manager');
+  }, []);
   
-  // Filter starts OFF — empty string means show all (from today)
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
   
   const [selectedEvent, setSelectedEvent] = useState<ScheduleItem | null>(null);
   const [showChecklist, setShowChecklist] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<ScheduleItem | null>(null);
-  // All authenticated users can edit schedules according to new rules
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,7 +44,6 @@ const AdminDashboard: React.FC = () => {
           fetchEquipmentData()
         ]);
         
-        // Sort: today & future first (ascending), past at the bottom
         const todayISO = getTodayISO();
         schedData.sort((a, b) => {
           const dateA = parseSheetDate(a.Date, a.Start_Time);
@@ -65,7 +70,6 @@ const AdminDashboard: React.FC = () => {
   const ongoingProgram = schedule.find(item => item.Status?.toLowerCase() === 'ongoing');
   const upcomingPrograms = schedule.filter(item => item.Status?.toLowerCase() === 'upcoming');
 
-  // Filter schedule by datepicker — no filter shows all from today onwards
   const todayISO = getTodayISO();
   const filteredSchedule = selectedDateFilter 
     ? schedule.filter(item => normalizeDateToISO(item.Date) === selectedDateFilter)
@@ -111,7 +115,9 @@ const AdminDashboard: React.FC = () => {
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this schedule?')) {
       if (selectedEvent) {
+        setIsDeleting(true);
         const success = await executeApi('Schedules', 'delete', selectedEvent);
+        setIsDeleting(false);
         if (success) {
           setSchedule(prev => prev.filter(item => item.Schedule_ID !== selectedEvent.Schedule_ID));
           showToast(`Schedule "${selectedEvent.Program_Name}" deleted.`, 'info');
@@ -120,6 +126,24 @@ const AdminDashboard: React.FC = () => {
         } else {
           showToast('Failed to delete schedule.', 'error');
         }
+      }
+    }
+  };
+
+  const handleGoLive = async () => {
+    if (selectedEvent && window.confirm(`Go LIVE with "${selectedEvent.Program_Name}"? This will set the status to Ongoing.`)) {
+      setIsGoingLive(true);
+      const updatedEvent = { ...selectedEvent, Status: 'Ongoing' };
+      const success = await executeApi('Schedules', 'update', updatedEvent);
+      setIsGoingLive(false);
+      if (success) {
+        setSchedule(prev => prev.map(item => 
+          item.Schedule_ID === selectedEvent.Schedule_ID ? updatedEvent : item
+        ));
+        setSelectedEvent(updatedEvent);
+        showToast(`"${selectedEvent.Program_Name}" is now LIVE!`, 'success');
+      } else {
+        showToast('Failed to go live.', 'error');
       }
     }
   };
@@ -140,7 +164,6 @@ const AdminDashboard: React.FC = () => {
         gap: 'var(--spacing-md)', 
         marginBottom: 'var(--spacing-lg)' 
       }}>
-        {/* Metric Cards */}
         <div className="glass-panel" style={{ padding: 'var(--spacing-md)' }}>
           <p className="label-caps" style={{ color: 'var(--color-outline)' }}>ON-AIR STATUS</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-xs)' }}>
@@ -209,43 +232,14 @@ const AdminDashboard: React.FC = () => {
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          {/* Skeleton Loading Animation */}
           {[1, 2, 3, 4].map((i) => (
-            <div 
-              key={i}
-              className="glass-panel" 
-              style={{ 
-                padding: 'var(--spacing-md)', 
-                borderLeft: '4px solid var(--color-surface-container-high)',
-                animation: 'pulse 2s ease-in-out infinite'
-              }}
-            >
-              <div className="desktop-grid" style={{
-                gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px',
-                alignItems: 'center',
-                gap: 'var(--spacing-md)',
-                textAlign: 'center'
-              }}>
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-                <div style={{ height: '16px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
-              </div>
+            <div key={i} className="glass-panel" style={{ padding: 'var(--spacing-md)', animation: 'pulse 2s ease-in-out infinite' }}>
+              <div style={{ height: '20px', backgroundColor: 'var(--color-surface-container-high)', borderRadius: '4px' }} />
             </div>
           ))}
-          <style>{`
-            @keyframes pulse {
-              0%, 100% { opacity: 0.6; }
-              50% { opacity: 1; }
-            }
-          `}</style>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-          {/* Desktop Header */}
           <div className="desktop-grid" style={{ 
             gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px', 
             padding: 'var(--spacing-sm) var(--spacing-md)', 
@@ -290,7 +284,6 @@ const AdminDashboard: React.FC = () => {
                   e.currentTarget.style.transform = 'translateX(0)';
                 }}
               >
-                {/* Desktop Layout: full grid row */}
                 <div className="desktop-grid" style={{
                   gridTemplateColumns: '100px 2fr 120px 150px 1.5fr 1fr 120px',
                   alignItems: 'center',
@@ -310,27 +303,6 @@ const AdminDashboard: React.FC = () => {
                       {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
                       <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
                     </span>
-                  </div>
-                </div>
-
-                {/* Mobile Layout: 2-row card — Program Name + Status / Date + Time */}
-                <div className="mobile-only-flex" style={{
-                  flexDirection: 'column',
-                  gap: '6px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                    <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-on-surface)', flex: 1, lineHeight: 1.3 }}>
-                      {item.Program_Name}
-                    </div>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: sColor, flexShrink: 0 }}>
-                      {isDone ? <CheckCircle size={12} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
-                      <span className="label-caps" style={{ fontSize: '10px' }}>{item.Status}</span>
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-outline)', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <span>{formatDateToDDMMYYYY(item.Date)}</span>
-                    <span>·</span>
-                    <span>{item.Start_Time} – {item.End_Time}</span>
                   </div>
                 </div>
               </div>
@@ -368,8 +340,49 @@ const AdminDashboard: React.FC = () => {
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {!isEditing && (
                   <>
+                    {/* Manager-only: Go Live Button */}
+                    {isManager && selectedEvent.Status?.toLowerCase() !== 'ongoing' && (
+                      <button 
+                        onClick={handleGoLive} 
+                        disabled={isGoingLive}
+                        style={{ 
+                          background: 'var(--color-vibrant-green)', 
+                          border: 'none', 
+                          color: 'black', 
+                          cursor: isGoingLive ? 'wait' : 'pointer', 
+                          padding: '6px 12px', 
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontWeight: 600,
+                          fontSize: '13px',
+                          opacity: isGoingLive ? 0.7 : 1
+                        }}
+                      >
+                        <Radio size={16} />
+                        {isGoingLive ? 'GOING LIVE...' : 'GO LIVE'}
+                      </button>
+                    )}
                     <button onClick={() => setIsEditing(true)} style={{ background: 'var(--color-surface-container)', border: '1px solid var(--color-border)', color: 'var(--color-on-surface)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Edit size={18} /></button>
-                    <button onClick={handleDelete} style={{ background: 'var(--color-error-container)', border: '1px solid var(--color-error)', color: 'var(--color-error)', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}><Trash2 size={18} /></button>
+                    {/* Manager-only: Delete Button */}
+                    {isManager && (
+                      <button 
+                        onClick={handleDelete} 
+                        disabled={isDeleting}
+                        style={{ 
+                          background: 'var(--color-error-container)', 
+                          border: '1px solid var(--color-error)', 
+                          color: 'var(--color-error)', 
+                          cursor: isDeleting ? 'wait' : 'pointer', 
+                          padding: '6px', 
+                          borderRadius: '4px',
+                          opacity: isDeleting ? 0.7 : 1
+                        }}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </>
                 )}
                 <button onClick={() => setSelectedEvent(null)} style={{ background: 'transparent', border: 'none', color: 'var(--color-outline)', cursor: 'pointer', padding: '6px' }}><X size={24} /></button>
@@ -377,7 +390,6 @@ const AdminDashboard: React.FC = () => {
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-              {/* DATE COLUMN */}
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">Date</div>
                 {isEditing ? (
@@ -387,7 +399,6 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
               
-              {/* TIME COLUMN */}
               <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)' }}>
                 <div className="label-caps text-dim">Time</div>
                 {isEditing ? (

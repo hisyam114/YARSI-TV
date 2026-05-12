@@ -251,6 +251,9 @@ export const executeApi = async (sheetName: string, action: string, record: any)
     const session = localStorage.getItem('yarsi_user');
     const username = session ? JSON.parse(session).name : 'System';
 
+    // 🔒 Security: Don't log request body with API key
+    console.log(`[API] ${action} operation on ${sheetName}`);
+
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify({ 
@@ -302,13 +305,8 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
     // The Google Apps Script URL for creating folders
     const DRIVE_SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || SCRIPT_URL;
     
+    // 🔒 Security: Don't log API key or full request body
     console.log('[Drive] Sending request to:', DRIVE_SCRIPT_URL);
-    console.log('[Drive] Request body:', JSON.stringify({ 
-      action: "createFolder", 
-      folderName: folderName,
-      parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK",
-      apiKey: API_KEY // 🔐 Add API key
-    }));
     
     const res = await fetch(DRIVE_SCRIPT_URL, {
       method: "POST",
@@ -322,10 +320,9 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
     });
     
     console.log('[Drive] Response status:', res.status);
-    console.log('[Drive] Response headers:', res.headers);
+    // 🔒 Security: Don't log response body to avoid exposing sensitive data
     
     const result = await res.json();
-    console.log('[Drive] Response result:', JSON.stringify(result));
 
     if (result.status === 'success' && result.folderLink) {
       console.log('[Drive] SUCCESS - Folder created:', result.folderLink);

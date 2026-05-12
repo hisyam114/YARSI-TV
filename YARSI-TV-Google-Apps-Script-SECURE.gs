@@ -92,6 +92,15 @@ function validateInput(data) {
 
 function doPost(e) {
   try {
+    // Handle case where e is undefined (test run)
+    if (!e || !e.postData) {
+      console.log("Test run detected - no postData");
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "No data provided. This is a test run."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
     // Get client IP (approximation)
     const ip = e.parameter?.ip_override || 'unknown';
     
@@ -276,4 +285,150 @@ function handleCreateFolder(data) {
 // Allow browser CORS checks
 function doOptions(e) {
   return ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
+}
+
+// ========================================
+// TEST FUNCTIONS (Safe to run in Apps Script)
+// ========================================
+
+/**
+ * Test API Key Configuration
+ * Run this to verify API key is set correctly
+ */
+function testAPIKey() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('API_KEY');
+  console.log('API Key:', apiKey);
+  console.log('API Key length:', apiKey?.length);
+  console.log('API Key configured:', apiKey ? 'YES ✅' : 'NO ❌');
+  
+  if (!apiKey || apiKey === 'default-change-me') {
+    console.error('⚠️ WARNING: API Key not properly configured!');
+    console.log('Go to: Project Settings → Script Properties → Add API_KEY');
+  } else {
+    console.log('✅ API Key is properly configured');
+  }
+  
+  return apiKey ? 'Configured ✅' : 'Not configured ❌';
+}
+
+/**
+ * Test Spreadsheet Connection
+ * Run this to verify spreadsheet access
+ */
+function testSpreadsheetConnection() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    console.log('✅ Spreadsheet connected:', ss.getName());
+    
+    // List all sheets
+    const sheets = ss.getSheets();
+    console.log('Available sheets:');
+    sheets.forEach(sheet => {
+      console.log('  - ' + sheet.getName());
+    });
+    
+    return 'Connected ✅';
+  } catch (error) {
+    console.error('❌ Spreadsheet connection failed:', error.toString());
+    return 'Failed ❌';
+  }
+}
+
+/**
+ * Test Drive Folder Creation
+ * Run this to verify Drive access and folder creation
+ */
+function testDriveFolderCreation() {
+  try {
+    const parentFolderId = '1Mvm5sJvB3opXOQWSADkugminbC1oF8HK';
+    const testFolderName = 'TEST_FOLDER_' + new Date().getTime();
+    
+    console.log('Creating test folder:', testFolderName);
+    
+    const parentFolder = DriveApp.getFolderById(parentFolderId);
+    console.log('✅ Parent folder accessed:', parentFolder.getName());
+    
+    const newFolder = parentFolder.createFolder(testFolderName);
+    console.log('✅ Test folder created:', newFolder.getUrl());
+    
+    // Clean up - delete test folder
+    newFolder.setTrashed(true);
+    console.log('✅ Test folder deleted (cleanup)');
+    
+    return 'Drive access working ✅';
+  } catch (error) {
+    console.error('❌ Drive test failed:', error.toString());
+    return 'Failed ❌';
+  }
+}
+
+/**
+ * Test Complete API Request (Simulated)
+ * Run this to test the full API flow
+ */
+function testCompleteAPIFlow() {
+  console.log('========================================');
+  console.log('COMPLETE API TEST');
+  console.log('========================================');
+  
+  // Test 1: API Key
+  console.log('\n1. Testing API Key...');
+  testAPIKey();
+  
+  // Test 2: Spreadsheet
+  console.log('\n2. Testing Spreadsheet Connection...');
+  testSpreadsheetConnection();
+  
+  // Test 3: Drive
+  console.log('\n3. Testing Drive Access...');
+  testDriveFolderCreation();
+  
+  console.log('\n========================================');
+  console.log('ALL TESTS COMPLETED');
+  console.log('========================================');
+  
+  return 'All tests completed. Check logs above.';
+}
+
+/**
+ * Test API Request with Mock Data
+ * This simulates a real API call from the frontend
+ */
+function testMockAPIRequest() {
+  const mockEvent = {
+    postData: {
+      contents: JSON.stringify({
+        apiKey: PropertiesService.getScriptProperties().getProperty('API_KEY'),
+        action: 'createFolder',
+        folderName: 'TEST_Mock_Folder_' + new Date().getTime(),
+        parentFolderId: '1Mvm5sJvB3opXOQWSADkugminbC1oF8HK'
+      })
+    },
+    parameter: {}
+  };
+  
+  console.log('Sending mock request...');
+  const response = doPost(mockEvent);
+  const result = JSON.parse(response.getContent());
+  
+  console.log('Response:', JSON.stringify(result, null, 2));
+  
+  if (result.status === 'success') {
+    console.log('✅ Mock API request successful!');
+    console.log('Folder link:', result.folderLink);
+    
+    // Clean up test folder
+    try {
+      const folderId = result.folderId;
+      const folder = DriveApp.getFolderById(folderId);
+      folder.setTrashed(true);
+      console.log('✅ Test folder cleaned up');
+    } catch (e) {
+      console.log('Note: Could not clean up test folder');
+    }
+  } else {
+    console.error('❌ Mock API request failed:', result.message);
+  }
+  
+  return result.status;
 }

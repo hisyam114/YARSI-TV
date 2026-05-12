@@ -1,6 +1,9 @@
 import Papa from 'papaparse';
 import { getCachedData, setCachedData, invalidateCache, CACHE_KEYS } from '../utils/cache';
 
+// 🔐 Security: API Key from environment variables
+const API_KEY = import.meta.env.VITE_API_KEY || '';
+
 export interface ScheduleItem {
   Schedule_ID: string;
   Program_Name: string;
@@ -205,20 +208,58 @@ export const fetchEquipmentUsageData = async (): Promise<EquipmentUsageRecord[]>
   });
 };
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+
+/**
+ * Validate input data before sending to API
+ * Prevents XSS and injection attacks
+ */
+const validateApiInput = (data: any): boolean => {
+  if (!data || typeof data !== 'object') return false;
+  
+  // Check for suspicious patterns
+  const suspiciousPatterns = /<script|javascript:|onerror|onclick/gi;
+  const dataStr = JSON.stringify(data);
+  
+  if (suspiciousPatterns.test(dataStr)) {
+    console.warn('[Security] Suspicious input detected');
+    return false;
+  }
+  
+  return true;
+};
 
 /**
  * Execute API call to update spreadsheet data
  * Automatically invalidates the relevant cache when data is updated
+ * 🔐 Includes API key authentication
  */
 export const executeApi = async (sheetName: string, action: string, record: any) => {
   try {
+    // Validate input
+    if (!validateApiInput({ sheetName, action, record })) {
+      console.error('API validation failed');
+      return false;
+    }
+
+    // Check if API key is configured
+    if (!API_KEY) {
+      console.error('[Security] API_KEY not configured. Set VITE_API_KEY in .env.local');
+      return false;
+    }
+
     const session = localStorage.getItem('yarsi_user');
     const username = session ? JSON.parse(session).name : 'System';
 
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      body: JSON.stringify({ sheetName, action, record, username }),
+      body: JSON.stringify({ 
+        sheetName, 
+        action, 
+        record, 
+        username,
+        apiKey: API_KEY // 🔐 Add API key to request
+      }),
       headers: { "Content-Type": "text/plain;charset=utf-8" },
     });
     const result = await res.json();
@@ -240,19 +281,33 @@ export const executeApi = async (sheetName: string, action: string, record: any)
 /**
  * Create a folder in Google Drive and return the folder link
  * This requires a Google Apps Script endpoint that handles the folder creation
+ * 🔐 Includes API key authentication and input validation
  */
 export const createGoogleDriveFolder = async (folderName: string): Promise<string | null> => {
   try {
+    // Check if API key is configured
+    if (!API_KEY) {
+      console.error('[Security] API_KEY not configured. Set VITE_API_KEY in .env.local');
+      return null;
+    }
+
+    // Validate folder name to prevent path traversal
+    if (folderName.includes('..') || folderName.includes('/') || folderName.includes('\\')) {
+      console.error('[Security] Invalid folder name detected');
+      return null;
+    }
+
     console.log('[Drive] Creating folder:', folderName);
     
     // The Google Apps Script URL for creating folders
-    const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+    const DRIVE_SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || SCRIPT_URL;
     
     console.log('[Drive] Sending request to:', DRIVE_SCRIPT_URL);
     console.log('[Drive] Request body:', JSON.stringify({ 
       action: "createFolder", 
       folderName: folderName,
-      parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK"
+      parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK",
+      apiKey: API_KEY // 🔐 Add API key
     }));
     
     const res = await fetch(DRIVE_SCRIPT_URL, {
@@ -260,7 +315,8 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
       body: JSON.stringify({ 
         action: "createFolder", 
         folderName: folderName,
-        parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK"
+        parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK",
+        apiKey: API_KEY // �� Add API key
       }),
       headers: { "Content-Type": "text/plain;charset=utf-8" },
     });

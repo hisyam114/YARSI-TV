@@ -29,7 +29,7 @@ const AdminDashboard: React.FC = () => {
     setIsManager(session?.role === 'Manager');
   }, []);
   
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
+  // const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
   const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('');
   
   const [selectedEvent, setSelectedEvent] = useState<ScheduleItem | null>(null);

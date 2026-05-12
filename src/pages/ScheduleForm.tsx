@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { executeApi, fetchScheduleData, type ScheduleItem, createScheduleWithDriveFolder } from '../services/googleSheets';
+import { fetchScheduleData, type ScheduleItem, createScheduleWithDriveFolder } from '../services/googleSheets';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
 import { getDayNameIndonesian } from '../utils/dateUtils';

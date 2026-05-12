@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchBlogData, type ScheduleItem, type BlogArticle } from '../services/googleSheets';
-import { parseSheetDate, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
+import { parseSheetDate, formatDateToDDMMYYYY, getDayNameIndonesian, normalizeDateToISO } from '../utils/dateUtils';
 import { clearLogoutTransition } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 

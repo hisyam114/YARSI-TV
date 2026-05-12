@@ -35,9 +35,15 @@ const LandingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>(''); // YYYY-MM-DD format
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('');
   const [showLogoutExit, setShowLogoutExit] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Get current month in YYYY-MM format
+  const getCurrentMonth = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     // Carousel Auto-play
@@ -121,26 +127,25 @@ const LandingPage: React.FC = () => {
     loadArticles();
   }, []);
 
-  // Filter schedules by selected date
+  // Filter schedules by selected month or default to current month
   const getFilteredSchedules = () => {
-    if (!selectedDateFilter) return schedule;
+    const currentMonth = getCurrentMonth();
     
-    return schedule.filter(item => {
-      // Normalize item date to YYYY-MM-DD format for comparison
-      const itemDate = item.Date;
-      // Handle both DD/MM/YYYY and YYYY-MM-DD formats
-      if (itemDate.includes('/')) {
-        // DD/MM/YYYY format
-        const parts = itemDate.split('/');
-        if (parts.length === 3) {
-          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` === selectedDateFilter;
-        }
-      } else if (itemDate.includes('-')) {
-        // YYYY-MM-DD format - just compare directly
-        return itemDate === selectedDateFilter;
-      }
-      return false;
-    });
+    if (selectedMonthFilter) {
+      // Filter by selected month
+      return schedule.filter(item => {
+        const itemDate = normalizeDateToISO(item.Date);
+        const itemMonth = itemDate.substring(0, 7); // YYYY-MM
+        return itemMonth === selectedMonthFilter;
+      });
+    } else {
+      // Default: show current month only
+      return schedule.filter(item => {
+        const itemDate = normalizeDateToISO(item.Date);
+        const itemMonth = itemDate.substring(0, 7); // YYYY-MM
+        return itemMonth === currentMonth;
+      });
+    }
   };
 
   const filteredSchedule = getFilteredSchedules();
@@ -430,7 +435,7 @@ const LandingPage: React.FC = () => {
       <section id="schedule-section" className="container-padding" style={{ maxWidth: '1440px', margin: '-50px auto 0', position: 'relative', zIndex: 5, paddingBottom: 'var(--spacing-xl)' }}>
         <h2 style={{ marginBottom: 'var(--spacing-md)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', textAlign: 'center' }}>Live & Upcoming Broadcasts</h2>
         
-        {/* Date Filter */}
+        {/* Month Filter */}
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -439,11 +444,11 @@ const LandingPage: React.FC = () => {
           justifyContent: 'center',
           flexWrap: 'wrap'
         }}>
-          <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter by Date:</label>
+          <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter by Month:</label>
           <input 
-            type="date"
-            value={selectedDateFilter}
-            onChange={(e) => setSelectedDateFilter(e.target.value)}
+            type="month"
+            value={selectedMonthFilter || getCurrentMonth()}
+            onChange={(e) => setSelectedMonthFilter(e.target.value)}
             style={{ 
               background: 'var(--color-surface-container)', 
               color: 'var(--color-on-surface)', 
@@ -458,9 +463,9 @@ const LandingPage: React.FC = () => {
             onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-primary)'}
             onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border)'}
           />
-          {selectedDateFilter && (
+          {selectedMonthFilter && selectedMonthFilter !== getCurrentMonth() && (
             <button 
-              onClick={() => setSelectedDateFilter('')}
+              onClick={() => setSelectedMonthFilter('')}
               style={{ 
                 background: 'transparent', 
                 border: '1px solid var(--color-border)', 
@@ -480,7 +485,7 @@ const LandingPage: React.FC = () => {
                 e.currentTarget.style.borderColor = 'var(--color-border)';
               }}
             >
-              Clear
+              Reset to Current Month
             </button>
           )}
         </div>
@@ -629,7 +634,7 @@ const LandingPage: React.FC = () => {
             
             {filteredSchedule.length === 0 && (
               <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
-                {selectedDateFilter ? `No events registered for ${new Date(selectedDateFilter + 'T00:00').toLocaleDateString('en-GB')}.` : 'No active broadcasts scheduled at this time.'}
+                No broadcasts scheduled for this month.
               </div>
             )}
           </div>

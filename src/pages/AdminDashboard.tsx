@@ -30,11 +30,18 @@ const AdminDashboard: React.FC = () => {
   }, []);
   
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('');
   
   const [selectedEvent, setSelectedEvent] = useState<ScheduleItem | null>(null);
   const [showChecklist, setShowChecklist] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<ScheduleItem | null>(null);
+
+  // Get current month in YYYY-MM format
+  const getCurrentMonth = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,9 +78,20 @@ const AdminDashboard: React.FC = () => {
   const upcomingPrograms = schedule.filter(item => item.Status?.toLowerCase() === 'upcoming');
 
   const todayISO = getTodayISO();
-  const filteredSchedule = selectedDateFilter 
-    ? schedule.filter(item => normalizeDateToISO(item.Date) === selectedDateFilter)
-    : schedule.filter(item => normalizeDateToISO(item.Date) >= todayISO);
+  const currentMonth = getCurrentMonth();
+  
+  // Filter by selected month or default to current month
+  const filteredSchedule = selectedMonthFilter 
+    ? schedule.filter(item => {
+        const itemDate = normalizeDateToISO(item.Date);
+        const itemMonth = itemDate.substring(0, 7); // YYYY-MM
+        return itemMonth === selectedMonthFilter;
+      })
+    : schedule.filter(item => {
+        const itemDate = normalizeDateToISO(item.Date);
+        const itemMonth = itemDate.substring(0, 7); // YYYY-MM
+        return itemMonth === currentMonth && normalizeDateToISO(item.Date) >= todayISO;
+      });
 
   const handleCloseEventClick = () => {
     setShowChecklist(true);
@@ -203,11 +221,11 @@ const AdminDashboard: React.FC = () => {
       }}>
         <h3 style={{ margin: 0 }}>Jadwal Operasional</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
-          <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter Date:</label>
+          <label className="label-caps text-dim" style={{ fontSize: '12px', color: 'var(--color-outline)' }}>Filter Month:</label>
           <input 
-            type="date"
-            value={selectedDateFilter}
-            onChange={(e) => setSelectedDateFilter(e.target.value)}
+            type="month"
+            value={selectedMonthFilter || getCurrentMonth()}
+            onChange={(e) => setSelectedMonthFilter(e.target.value)}
             style={{ 
               background: 'var(--color-surface-container)', 
               color: 'var(--color-on-surface)', 
@@ -219,12 +237,12 @@ const AdminDashboard: React.FC = () => {
               colorScheme: 'dark'
             }}
           />
-          {selectedDateFilter && (
+          {selectedMonthFilter && (
             <button 
-              onClick={() => setSelectedDateFilter('')}
+              onClick={() => setSelectedMonthFilter('')}
               style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-outline)', padding: 'var(--spacing-xs) var(--spacing-sm)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '12px' }}
             >
-              Clear
+              Reset to Current Month
             </button>
           )}
         </div>

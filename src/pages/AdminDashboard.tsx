@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchScheduleData, fetchEquipmentData, executeApi, type ScheduleItem, type EquipmentItem } from '../services/googleSheets';
-import { X, CheckCircle, Edit, Trash2, Save, Radio } from 'lucide-react';
+import { X, CheckCircle, Edit, Trash2, Save, Radio, FolderOpen } from 'lucide-react';
 import { showToast } from '../utils/toast';
 import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
 import { getSession } from '../utils/auth';
@@ -485,6 +485,36 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Google Drive Link Section */}
+              {!isEditing && selectedEvent.Drive_Link && (
+                <div style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, #006400 100%)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', gridColumn: '1 / -1', color: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                    <FolderOpen size={24} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '11px', opacity: 0.9, marginBottom: '4px' }}>GOOGLE DRIVE FOLDER</div>
+                      <a 
+                        href={selectedEvent.Drive_Link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={{ 
+                          color: 'white', 
+                          textDecoration: 'underline', 
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          display: 'block',
+                          marginBottom: '4px'
+                        }}
+                      >
+                        Open Folder in Google Drive →
+                      </a>
+                      <div style={{ fontSize: '11px', opacity: 0.7, wordBreak: 'break-all' }}>
+                        {selectedEvent.Program_Name}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {!isEditing && (

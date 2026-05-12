@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { executeApi, fetchScheduleData, type ScheduleItem } from '../services/googleSheets';
+import { executeApi, fetchScheduleData, type ScheduleItem, createScheduleWithDriveFolder } from '../services/googleSheets';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
 import { getDayNameIndonesian } from '../utils/dateUtils';
@@ -42,11 +42,12 @@ const ScheduleForm: React.FC = () => {
     }
     
     setIsSaving(true);
-    const success = await executeApi('Schedules', 'create', formData);
+    // Use the new function that creates Drive folder and saves schedule
+    const success = await createScheduleWithDriveFolder(formData);
     setIsSaving(false);
     
     if (success) {
-      showToast(`Schedule "${formData.Program_Name}" saved!`, 'success');
+      showToast(`Schedule "${formData.Program_Name}" saved with Drive folder!`, 'success');
       navigate('/admin');
     } else {
       showToast('Failed to save schedule.', 'error');

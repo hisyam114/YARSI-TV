@@ -11,6 +11,7 @@ export interface ScheduleItem {
   Location: string;
   PIC: string;
   Status: string;
+  Drive_Link?: string;
 }
 
 export interface UserItem {
@@ -233,6 +234,87 @@ export const executeApi = async (sheetName: string, action: string, record: any)
   } catch (err) {
     console.error(`API Error on ${sheetName} [${action}]`, err);
     return false;
+  }
+};
+
+/**
+ * Create a folder in Google Drive and return the folder link
+ * This requires a Google Apps Script endpoint that handles the folder creation
+ */
+export const createGoogleDriveFolder = async (folderName: string): Promise<string | null> => {
+  try {
+    console.log('[Drive] Creating folder:', folderName);
+    
+    // The Google Apps Script URL for creating folders
+    const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+    
+    console.log('[Drive] Sending request to:', DRIVE_SCRIPT_URL);
+    console.log('[Drive] Request body:', JSON.stringify({ 
+      action: "createFolder", 
+      folderName: folderName,
+      parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK"
+    }));
+    
+    const res = await fetch(DRIVE_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ 
+        action: "createFolder", 
+        folderName: folderName,
+        parentFolderId: "1Mvm5sJvB3opXOQWSADkugminbC1oF8HK"
+      }),
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+    });
+    
+    console.log('[Drive] Response status:', res.status);
+    console.log('[Drive] Response headers:', res.headers);
+    
+    const result = await res.json();
+    console.log('[Drive] Response result:', JSON.stringify(result));
+
+    if (result.status === 'success' && result.folderLink) {
+      console.log('[Drive] SUCCESS - Folder created:', result.folderLink);
+      return result.folderLink;
+    } else {
+      console.error('[Drive] FAILED - Result:', result);
+      return null;
+    }
+  } catch (err) {
+    console.error('[Drive] ERROR creating folder:', err);
+    console.error('[Drive] Error details:', err);
+    return null;
+  }
+};
+
+/**
+ * Create schedule with Google Drive folder integration
+ * Creates folder in Drive and saves schedule with the folder link
+ */
+export const createScheduleWithDriveFolder = async (scheduleData: ScheduleItem): Promise<boolean> => {
+  try {
+    // First create the Google Drive folder
+    const folderLink = await createGoogleDriveFolder(scheduleData.Program_Name);
+    
+    if (folderLink) {
+      // Add the drive link to the schedule data
+      const scheduleWithDrive = {
+        ...scheduleData,
+        Drive_Link: folderLink
+      };
+      
+      // Save to spreadsheet
+      const success = await executeApi('Schedules', 'create', scheduleWithDrive);
+      return success;
+    } else {
+      // If folder creation fails, still save the schedule without the link
+      console.warn('[Drive] Folder creation failed, saving schedule without Drive link');
+      const success = await executeApi('Schedules', 'create', scheduleData);
+      return success;
+    }
+  } catch (err) {
+    console.error('[Drive] Error in createScheduleWithDriveFolder:', err);
+    // Fallback to regular schedule creation
+    const success = await executeApi('Schedules', 'create', scheduleData);
+    return success;
   }
 };
 

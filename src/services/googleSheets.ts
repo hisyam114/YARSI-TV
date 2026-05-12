@@ -41,10 +41,22 @@ export interface BlogArticle {
   Read_Time: string;
 }
 
+export interface EquipmentUsageRecord {
+  ID?: string;
+  NOMOR_SURAT: string;
+  NAMA_PIC: string;
+  TANGGAL: string;
+  KEGIATAN: string;
+  NAMA_KEGIATAN: string;
+  DETAIL_ALAT: string;
+  CREATED_AT?: string;
+}
+
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/export?format=csv&gid=0';
 const USERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Users';
 const EQUIPMENT_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Master_Equipment';
 const BLOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Articles';
+const EQUIPMENT_USAGE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4/gviz/tq?tqx=out:csv&sheet=Data_Penggunaan_Alat';
 
 /**
  * Fetch schedule data with caching
@@ -164,6 +176,28 @@ export const fetchBlogData = async (): Promise<BlogArticle[]> => {
       },
       error: (error: Error) => {
         console.error("Error fetching Blog data:", error);
+        reject(error);
+      }
+    });
+  });
+};
+
+/**
+ * Fetch equipment usage records from Data_Penggunaan_Alat sheet
+ */
+export const fetchEquipmentUsageData = async (): Promise<EquipmentUsageRecord[]> => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(EQUIPMENT_USAGE_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as EquipmentUsageRecord[];
+        console.log('[Equipment Usage] Fetched', data.length, 'records from spreadsheet');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Equipment Usage data:", error);
         reject(error);
       }
     });

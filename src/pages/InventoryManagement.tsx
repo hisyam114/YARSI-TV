@@ -36,6 +36,31 @@ const InventoryManagement: React.FC = () => {
   const [usageRecords, setUsageRecords] = useState<EquipmentUsageRecord[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(false);
 
+  // Category prefix mapping
+  const categoryPrefixes: Record<string, string> = {
+    'Kamera': 'CAM',
+    'Audio': 'AUD',
+    'Lighting': 'LGT',
+    'Aksesoris': 'ACC'
+  };
+
+  // Generate next equipment ID based on category
+  const getNextEquipmentId = (category: string): string => {
+    const prefix = categoryPrefixes[category] || 'EQ';
+    const existingIds = equipment
+      .filter(e => e.Equipment_ID?.startsWith(prefix))
+      .map(e => {
+        const match = e.Equipment_ID?.match(new RegExp(`^${prefix}-(\\d+)$`));
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter(num => !isNaN(num));
+    
+    const maxNumber = existingIds.length > 0 ? Math.max(...existingIds) : 0;
+    const nextNumber = maxNumber + 1;
+    
+    return `${prefix}-${String(nextNumber).padStart(2, '0')}`;
+  };
+
   // Generate letter number based on format: 001/05/YTV/2026
   const generateLetterNumber = () => {
     const now = new Date();
@@ -102,10 +127,22 @@ const InventoryManagement: React.FC = () => {
       setFormData(item);
       setIsEditing(true);
     } else {
-      setFormData(initialFormState);
+      // Auto-generate equipment ID based on selected category
+      const nextId = getNextEquipmentId(formData.Category);
+      setFormData({ ...initialFormState, Equipment_ID: nextId });
       setIsEditing(false);
     }
     setShowAddModal(true);
+  };
+
+  // Handle category change to regenerate equipment ID
+  const handleCategoryChange = (newCategory: string) => {
+    if (!isEditing) {
+      const newId = getNextEquipmentId(newCategory);
+      setFormData({ ...formData, Category: newCategory, Equipment_ID: newId });
+    } else {
+      setFormData({ ...formData, Category: newCategory });
+    }
   };
 
   const handleSave = async () => {
@@ -452,7 +489,7 @@ const InventoryManagement: React.FC = () => {
             }}
           >
             <Plus size={18} />
-            <span>ADD ITEM</span>
+            <span>Tambahkan Alat</span>
           </button>
           
           <button 
@@ -492,7 +529,7 @@ const InventoryManagement: React.FC = () => {
             }}
           >
             <FileText size={18} />
-            <span>Equipment Usage Form</span>
+            <span>Form Pemakaian Alat</span>
           </button>
         </div>
       </div>
@@ -667,18 +704,18 @@ const InventoryManagement: React.FC = () => {
         }}>
           <div className="glass-panel" style={{ padding: 'var(--spacing-lg)', width: '100%', maxWidth: '500px', backgroundColor: 'var(--color-surface-container-lowest)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-              <h3>{isEditing ? 'Edit Equipment' : 'Add New Equipment'}</h3>
+              <h3>{isEditing ? 'Edit Alat' : 'Tambah Alat Baru'}</h3>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-outline)', cursor: 'pointer' }}><X size={24} /></button>
             </div>
             
             <form style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                 <label className="label-caps text-dim" style={{ color: 'var(--color-outline)' }}>Equipment ID</label>
-                <input type="text" value={formData.Equipment_ID} onChange={e => setFormData({...formData, Equipment_ID: e.target.value})} disabled={isEditing} placeholder="e.g. CAM-04" style={{ background: 'var(--color-surface-container)', color: 'var(--color-on-surface)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', opacity: isEditing ? 0.5 : 1 }} />
+                <input type="text" value={formData.Equipment_ID} readOnly onChange={e => setFormData({...formData, Equipment_ID: e.target.value})} disabled={true} placeholder="e.g. CAM-04" style={{ background: 'var(--color-surface-container)', color: 'var(--color-primary)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', opacity: isEditing ? 0.5 : 1 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                 <label className="label-caps text-dim" style={{ color: 'var(--color-outline)' }}>Category</label>
-                <select value={formData.Category} onChange={e => setFormData({...formData, Category: e.target.value})} style={{ background: 'var(--color-surface-container)', color: 'var(--color-on-surface)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+                <select value={formData.Category} onChange={e => handleCategoryChange(e.target.value)} style={{ background: 'var(--color-surface-container)', color: 'var(--color-on-surface)', padding: 'var(--spacing-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
                   <option>Kamera</option>
                   <option>Audio</option>
                   <option>Lighting</option>
@@ -709,7 +746,7 @@ const InventoryManagement: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} disabled={isSaving} style={{ padding: '8px 16px', background: 'transparent', color: 'var(--color-on-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-base)', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isSaving ? 0.5 : 1 }}>BATAL</button>
                 <button type="button" onClick={handleSave} disabled={isSaving} style={{ padding: '8px 16px', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-base)', cursor: isSaving ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isSaving ? 0.5 : 1 }}>
-                  {isSaving ? 'MENYIMPAN...' : 'SIMPAN ITEM'}
+                  {isSaving ? 'MENYIMPAN...' : 'SIMPAN ALAT'}
                 </button>
               </div>
             </form>

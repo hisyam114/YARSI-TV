@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Package, LogOut, Users, X, Shield, BookOpen, Sparkles } from 'lucide-react';
+import { Home, Calendar, Package, LogOut, Users, X, Shield, BookOpen } from 'lucide-react';
 import ToastContainer from './ToastContainer';
 import { getSession, clearSession, setLogoutTransition, clearLoginTransition } from '../utils/auth';
 
@@ -82,7 +82,6 @@ const AdminLayout: React.FC = () => {
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: <Home size={18} /> },
     { path: '/admin/schedule/new', label: 'Schedule Entry', icon: <Calendar size={18} /> },
-    { path: '/admin/schedule/assistant', label: 'AI Schedule', icon: <Sparkles size={18} /> },
     { path: '/admin/inventory', label: 'Inventory', icon: <Package size={18} /> },
     { path: '/admin/blogs', label: 'Blogs', icon: <BookOpen size={18} /> },
   ];

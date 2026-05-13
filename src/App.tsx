@@ -11,7 +11,6 @@ import ScheduleForm from './pages/ScheduleForm';
 import UserManagement from './pages/UserManagement';
 import ChangePassword from './pages/ChangePassword';
 import BlogManagement from './pages/BlogManagement';
-import SmartScheduleAssistantPage from './pages/SmartScheduleAssistant';
 
 // Components
 import AdminLayout from './components/AdminLayout';
@@ -31,7 +30,6 @@ function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="inventory" element={<InventoryManagement />} />
             <Route path="schedule/new" element={<ScheduleForm />} />
-            <Route path="schedule/assistant" element={<SmartScheduleAssistantPage />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="blogs" element={<BlogManagement />} />

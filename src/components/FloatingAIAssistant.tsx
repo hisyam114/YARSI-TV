@@ -190,10 +190,25 @@ const FloatingAIAssistant: React.FC = () => {
                   {chatMessages.length === 0 && (
                     <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', color: 'var(--color-outline)' }}>
                       <MessageSquare size={32} style={{ margin: '0 auto var(--spacing-sm)', opacity: 0.5 }} />
-                      <p style={{ margin: 0, fontSize: '13px' }}>Ask me about scheduling!</p>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>AI Schedule Assistant</p>
                       <p style={{ margin: '4px 0 0 0', fontSize: '11px' }}>
-                        Try: "When's the best time for a morning show?"
+                        Ask me about YARSI-TV scheduling!
                       </p>
+                      <div style={{ 
+                        marginTop: 'var(--spacing-sm)', 
+                        padding: 'var(--spacing-xs)', 
+                        backgroundColor: 'var(--color-surface-container)', 
+                        borderRadius: 'var(--radius-sm)',
+                        fontSize: '11px',
+                        lineHeight: 1.5
+                      }}>
+                        <p style={{ margin: '0 0 4px 0', color: 'var(--color-primary)' }}>💡 Example questions:</p>
+                        <p style={{ margin: 0, color: 'var(--color-outline)' }}>
+                          "When is the best time for a morning show?"<br/>
+                          "Suggest an available slot for 3 hours"<br/>
+                          "What days are busiest?"
+                        </p>
+                      </div>
                     </div>
                   )}
                   

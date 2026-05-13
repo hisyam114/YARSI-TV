@@ -486,7 +486,21 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Google Drive Link Section */}
+              {/* Edit mode: YouTube Studio Link input */}
+              {isEditing && (
+                <div style={{ background: 'var(--color-surface-container)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-sm)', gridColumn: '1 / -1' }}>
+                  <div className="label-caps text-dim">YouTube Studio Link</div>
+                  <input
+                    type="url"
+                    placeholder="https://studio.youtube.com/video/..."
+                    value={editFormData.Youtube_Link || ''}
+                    onChange={e => setEditFormData({...editFormData, Youtube_Link: e.target.value})}
+                    style={{ background: 'var(--color-surface-container-high)', color: 'white', padding: '4px', border: '1px solid var(--color-border)', borderRadius: '4px', width: '100%' }}
+                  />
+                </div>
+              )}
+
+              {/* View mode: Google Drive Link Section */}
               {!isEditing && selectedEvent.Drive_Link && (
                 <div style={{ background: 'linear-gradient(135deg, var(--color-primary) 0%, #006400 100%)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', gridColumn: '1 / -1', color: 'white' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
@@ -507,6 +521,36 @@ const AdminDashboard: React.FC = () => {
                         }}
                       >
                         Open Folder in Google Drive →
+                      </a>
+                      <div style={{ fontSize: '11px', opacity: 0.7, wordBreak: 'break-all' }}>
+                        {selectedEvent.Program_Name}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* YouTube Studio Link Section */}
+              {!isEditing && selectedEvent.Youtube_Link && (
+                <div style={{ background: 'linear-gradient(135deg, #FF0000 0%, #444 100%)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', gridColumn: '1 / -1', color: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 15l5-3-5-3v6z" /><path d="M21.8 8s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C15.8 5 12 5 12 5s-3.8 0-6.9.1c-.5 0-1.4.1-2.1.9-.6.6-.8 2-.8 2S2 9.8 2 11.5v1c0 1.7.4 3.5 1.2 4.5.8.9 1.9.9 2.4 1 1.8.1 7.4.1 7.4.1s3.8 0 6.9-.1c.5 0 1.6-.1 2.4-1 .8-1 1.2-2.8 1.2-4.5v-1c0-1.7-.4-3.5-1.2-4.5z"/></svg>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '11px', opacity: 0.9, marginBottom: '4px' }}>YOUTUBE STUDIO LINK</div>
+                      <a
+                        href={selectedEvent.Youtube_Link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          color: 'white',
+                          textDecoration: 'underline',
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          display: 'block',
+                          marginBottom: '4px'
+                        }}
+                      >
+                        Open in YouTube Studio →
                       </a>
                       <div style={{ fontSize: '11px', opacity: 0.7, wordBreak: 'break-all' }}>
                         {selectedEvent.Program_Name}

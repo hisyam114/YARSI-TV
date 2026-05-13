@@ -8,6 +8,15 @@ const generateScheduleId = (count: number): string => {
   return `SCH-${String(count).padStart(3, '0')}`;
 };
 
+const CATEGORY_OPTIONS = [
+  '',
+  'Studio',
+  'Documentation',
+  'Streaming',
+  'Streaming & Documentation',
+  'Other',
+];
+
 const ScheduleForm: React.FC = () => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
@@ -21,7 +30,9 @@ const ScheduleForm: React.FC = () => {
     End_Time: '',
     Location: '',
     PIC: '',
-    Status: 'Upcoming'
+    Status: 'Upcoming',
+    Category: '',
+    Youtube_Link: ''
   });
 
   useEffect(() => {
@@ -36,18 +47,18 @@ const ScheduleForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.Schedule_ID || !formData.Program_Name || !formData.Date || !formData.Start_Time || !formData.End_Time) {
+    if (!formData.Schedule_ID || !formData.Program_Name || !formData.Date || !formData.Start_Time || !formData.End_Time || !formData.Category) {
       alert("Please fill all required fields");
       return;
     }
     
     setIsSaving(true);
-    // Use the new function that creates Drive folder and saves schedule
+    // New supports Youtube Link for streaming
     const success = await createScheduleWithDriveFolder(formData);
     setIsSaving(false);
     
     if (success) {
-      showToast(`Schedule "${formData.Program_Name}" saved with Drive folder!`, 'success');
+      showToast(`Schedule "${formData.Program_Name}" saved!`, 'success');
       navigate('/admin');
     } else {
       showToast('Failed to save schedule.', 'error');
@@ -234,7 +245,31 @@ const ScheduleForm: React.FC = () => {
               </select>
             </div>
           </div>
-
+          {/* Category field */}
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', flex: '1 1 200px' }}>
+              <label className="label-caps" style={{ color: 'var(--color-outline)' }}>Category <span style={{ color: 'red'}}>*</span></label>
+              <select
+                required
+                value={formData.Category || ''}
+                onChange={e => setFormData({...formData, Category: e.target.value})}
+                style={{
+                  background: 'var(--color-surface-container)',
+                  border: '1px solid var(--color-border)',
+                  borderBottom: '2px solid var(--color-primary)',
+                  color: 'var(--color-on-surface)',
+                  padding: 'var(--spacing-sm)',
+                  borderRadius: 'var(--radius-sm) var(--radius-sm) 0 0',
+                  outline: 'none',
+                  fontFamily: 'var(--font-primary)',
+                }}
+              >
+                {CATEGORY_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt ? opt : 'Pilih Kategori'}</option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
             <button 
               type="button"

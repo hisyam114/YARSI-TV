@@ -5,7 +5,7 @@ import { getSession } from '../utils/auth';
 // 🔐 Security: API Key from environment variables
 const API_KEY = import.meta.env.VITE_API_KEY || '';
 
-// �� Security: Script URL from environment variables
+// 🔒 Security: Script URL from environment variables
 const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
 
 // 🔐 Security: Spreadsheet ID from environment
@@ -15,7 +15,6 @@ const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '1ZXfS1FQJqBidwg4k
 const DRIVE_PARENT_FOLDER_ID = import.meta.env.VITE_DRIVE_PARENT_FOLDER_ID || '1Mvm5sJvB3opXOQWSADkugminbC1oF8HK';
 
 // 🔓 PUBLIC CSV URLs - Only for public read (landing page, login)
-// These sheets are intentionally public for functionality
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/export?format=csv&gid=0';
 const USERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Users';
 
@@ -30,6 +29,8 @@ export interface ScheduleItem {
   PIC: string;
   Status: string;
   Drive_Link?: string;
+  Category?: string;
+  Youtube_Link?: string;
 }
 
 export interface UserItem {
@@ -91,21 +92,21 @@ const requireAuth = (): boolean => {
  */
 const validateApiInput = (data: any): boolean => {
   if (!data || typeof data !== 'object') return false;
-  
+
   // Check for suspicious patterns
   const suspiciousPatterns = /<script|javascript:|onerror|onclick/gi;
   const dataStr = JSON.stringify(data);
-  
+
   if (suspiciousPatterns.test(dataStr)) {
     console.warn('[Security] Suspicious input detected');
     return false;
   }
-  
+
   return true;
 };
 
 /**
- * 🔐 Fetch schedule data - PUBLIC ACCESS (landing page needs this)
+ * 🔓 Fetch schedule data - PUBLIC ACCESS (landing page needs this)
  * Uses public CSV for landing page display
  */
 export const fetchScheduleData = async (): Promise<ScheduleItem[]> => {
@@ -116,7 +117,7 @@ export const fetchScheduleData = async (): Promise<ScheduleItem[]> => {
     return cached;
   }
 
-  // 🔓 PUBLIC: Landing page needs to show schedules without login
+  // 🟢 PUBLIC: Landing page needs to show schedules without login
   return new Promise((resolve, reject) => {
     Papa.parse(SHEET_CSV_URL, {
       download: true,
@@ -148,7 +149,7 @@ export const fetchUsersData = async (): Promise<UserItem[]> => {
     return cached;
   }
 
-  // 🔓 PUBLIC: Login must work without being logged in
+  // 🟢 PUBLIC: Login must work without being logged in
   return new Promise((resolve, reject) => {
     Papa.parse(USERS_CSV_URL, {
       download: true,
@@ -289,7 +290,7 @@ export const executeApi = async (sheetName: string, action: string, record: any)
     const session = getSession();
     const username = session ? session.name : 'System';
 
-    // 🔒 Security: Don't log request body with API key
+    // 🔐 Security: Don't log request body with API key
     console.log(`[API] ${action} operation on ${sheetName} by ${username}`);
 
     const res = await fetch(SCRIPT_URL, {
@@ -338,14 +339,14 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
     }
 
     // Validate folder name to prevent path traversal
-    if (folderName.includes('..') || folderName.includes('/') || folderName.includes('\\\\')) {
+    if (folderName.includes('..') || folderName.includes('/') || folderName.includes('\\')) {
       console.error('[Security] Invalid folder name detected');
       return null;
     }
 
     console.log('[Drive] Creating folder:', folderName);
     
-    // 🔒 Security: Don't log API key or full request body
+    // 🔐 Security: Don't log API key or full request body
     console.log('[Drive] Sending request to:', SCRIPT_URL);
     
     const res = await fetch(SCRIPT_URL, {
@@ -360,7 +361,7 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
     });
     
     console.log('[Drive] Response status:', res.status);
-    // 🔒 Security: Don't log response body to avoid exposing sensitive data
+    // 🔐 Security: Don't log response body to avoid exposing sensitive data
     
     const result = await res.json();
 
@@ -382,22 +383,17 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
  */
 export const createScheduleWithDriveFolder = async (scheduleData: ScheduleItem): Promise<boolean> => {
   try {
-    // First create the Google Drive folder
+    // Always create the Google Drive folder
     const folderLink = await createGoogleDriveFolder(scheduleData.Program_Name);
-    
-    if (folderLink) {
-      const scheduleWithDrive = {
-        ...scheduleData,
-        Drive_Link: folderLink
-      };
-      
-      const success = await executeApi('Schedules', 'create', scheduleWithDrive);
-      return success;
-    } else {
-      console.warn('[Drive] Folder creation failed, saving schedule without Drive link');
-      const success = await executeApi('Schedules', 'create', scheduleData);
-      return success;
-    }
+
+    const scheduleWithDrive: ScheduleItem = {
+      ...scheduleData,
+      Drive_Link: folderLink || undefined
+    };
+
+    // Save schedule to Google Sheets (YouTube_Link is set manually via edit)
+    const success = await executeApi('Schedules', 'create', scheduleWithDrive);
+    return success;
   } catch (err) {
     console.error('[Drive] Error in createScheduleWithDriveFolder:', err);
     const success = await executeApi('Schedules', 'create', scheduleData);

@@ -4,6 +4,7 @@ import { X, CheckCircle, Edit, Trash2, Save, Radio, FolderOpen } from 'lucide-re
 import { showToast } from '../utils/toast';
 import { parseSheetDate, normalizeDateToISO, formatDateToDDMMYYYY, getDayNameIndonesian } from '../utils/dateUtils';
 import { getSession } from '../utils/auth';
+import FloatingAIAssistant from '../components/FloatingAIAssistant';
 
 const getStatusColor = (status?: string) => {
   const s = status?.toLowerCase() || '';
@@ -174,6 +175,8 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="container-padding" style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: 'var(--spacing-xl)' }}>
+      {/* Floating AI Assistant */}
+      <FloatingAIAssistant />
       <h2 style={{ marginBottom: 'var(--spacing-md)', fontSize: 'clamp(20px, 4vw, 24px)' }}>Dashboard Terpadu</h2>
       
       <div style={{ 

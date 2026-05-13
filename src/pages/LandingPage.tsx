@@ -3,6 +3,7 @@ import { fetchScheduleData, fetchBlogData, type ScheduleItem, type BlogArticle }
 import { parseSheetDate, formatDateToDDMMYYYY, getDayNameIndonesian, normalizeDateToISO } from '../utils/dateUtils';
 import { clearLogoutTransition } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
+import FloatingAIAssistant from '../components/FloatingAIAssistant';
 
 const CAROUSEL_IMAGES = [
   'images/jumbotron_studio_control_1778141117172.png',
@@ -159,6 +160,8 @@ const LandingPage: React.FC = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', position: 'relative' }}>
+      {/* Floating AI Assistant */}
+      <FloatingAIAssistant />
       
       {/* Logout Exit Animation Overlay - Circle OUT (contract) */}
       {showLogoutExit && (

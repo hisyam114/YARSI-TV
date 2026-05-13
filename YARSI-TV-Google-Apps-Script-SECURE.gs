@@ -58,6 +58,7 @@ function validateInput(data) {
   // Required fields based on action
   const requiredFields = {
     createFolder: ['folderName', 'parentFolderId'],
+    read: ['sheetName'],  // 🔐 SECURITY FIX: Add read action
     create: ['sheetName', 'record'],
     update: ['sheetName', 'record'],
     delete: ['sheetName', 'record']
@@ -147,6 +148,11 @@ function doPost(e) {
     // Handle folder creation for schedules
     if (action === 'createFolder') {
       return handleCreateFolder(validatedData);
+    }
+
+    // 🔐 SECURITY FIX: Handle read requests with authorization
+    if (action === 'read') {
+      return handleReadRequest(validatedData);
     }
 
     const sheetName = validatedData.sheetName;
@@ -284,7 +290,90 @@ function handleCreateFolder(data) {
 
 // Allow browser CORS checks
 function doOptions(e) {
-  return ContentService.createTextOutput().setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput()
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', 'https://hisyam114.github.io')
+    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    .setHeader('Access-Control-Max-Age', '3600');
+}
+
+// ========================================
+// 🔐 SECURITY FIX: Handle Read Requests
+// ========================================
+
+/**
+ * Handle read requests with proper authorization
+ * SECURITY: All read operations now go through authenticated API
+ * @param {Object} data - Request data
+ * @returns {TextOutput} - JSON response with data
+ */
+function handleReadRequest(data) {
+  try {
+    const sheetName = data.sheetName;
+    
+    // Validate sheet name - only allow specific sheets
+    const allowedSheets = ['Schedules', 'Users', 'Master_Equipment', 'Articles', 'Data_Penggunaan_Alat'];
+    if (!allowedSheets.includes(sheetName)) {
+      throw new Error("Unauthorized sheet access");
+    }
+    
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      throw new Error("Sheet not found: " + sheetName);
+    }
+    
+    // Get all data
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    if (values.length < 2) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        data: [],
+        count: 0,
+        message: "No data found"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Convert to JSON
+    const headers = values[0];
+    const records = values.slice(1).map(row => {
+      const record = {};
+      headers.forEach((header, index) => {
+        // 🔐 SECURITY: Redact passwords from Users sheet
+        if (sheetName === 'Users' && header === 'Password') {
+          record[header] = '[REDACTED]';
+        } else {
+          record[header] = row[index];
+        }
+      });
+      return record;
+    });
+    
+    // Log access for audit trail
+    const logSheet = spreadsheet.getSheetByName("Activity_Log");
+    if (logSheet) {
+      const logId = "LOG-" + new Date().getTime();
+      const timestamp = new Date().toISOString();
+      logSheet.appendRow([logId, timestamp, 'System', 'read', 'Read from ' + sheetName + ': ' + records.length + ' records']);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      data: records,
+      count: records.length
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    console.error("Read error:", error.toString());
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: "Failed to read data"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 // ========================================

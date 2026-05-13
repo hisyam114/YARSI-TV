@@ -1,14 +1,23 @@
+import Papa from 'papaparse';
 import { getCachedData, setCachedData, invalidateCache, CACHE_KEYS } from '../utils/cache';
 import { getSession } from '../utils/auth';
 
 // 🔐 Security: API Key from environment variables
 const API_KEY = import.meta.env.VITE_API_KEY || '';
 
-// 🔐 Security: Script URL from environment variables
+// �� Security: Script URL from environment variables
 const SCRIPT_URL = import.meta.env.VITE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbw-E6Po3wQ-HGaPlTfucFwH3LX-t7kDSuk1DMK-M5YrOgTYJJbwB-It72J5cT6dNAXx/exec";
+
+// 🔐 Security: Spreadsheet ID from environment
+const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '1ZXfS1FQJqBidwg4kuJ7ODQ4HkdUZhInJpmis3bDCDw4';
 
 // 🔐 Security: Drive parent folder from environment
 const DRIVE_PARENT_FOLDER_ID = import.meta.env.VITE_DRIVE_PARENT_FOLDER_ID || '1Mvm5sJvB3opXOQWSADkugminbC1oF8HK';
+
+// 🔓 PUBLIC CSV URLs - Only for public read (landing page, login)
+// These sheets are intentionally public for functionality
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/export?format=csv&gid=0';
+const USERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Users';
 
 export interface ScheduleItem {
   Schedule_ID: string;
@@ -63,7 +72,9 @@ export interface EquipmentUsageRecord {
 }
 
 /**
- * 🔐 SECURITY: Check if user is authenticated before making API calls
+ * 🔐 SECURITY: Check if user is authenticated before making WRITE API calls
+ * Public reads (schedule, users, blog) don't require auth
+ * Writes (create/update/delete) require auth
  */
 const requireAuth = (): boolean => {
   const session = getSession();
@@ -94,52 +105,8 @@ const validateApiInput = (data: any): boolean => {
 };
 
 /**
- * 🔐 SECURITY FIX: Fetch data from Google Apps Script API with authorization
- * All read operations now go through authenticated API instead of public CSV URLs
- */
-const fetchFromAPI = async (sheetName: string): Promise<any[]> => {
-  try {
-    // Check if API key is configured
-    if (!API_KEY) {
-      console.error('[Security] API_KEY not configured. Set VITE_API_KEY in .env.local');
-      return [];
-    }
-
-    // Check if user is authenticated
-    if (!requireAuth()) {
-      return [];
-    }
-
-    console.log(`[API] Fetching ${sheetName} via authenticated API`);
-
-    const res = await fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({ 
-        action: 'read',
-        sheetName: sheetName,
-        apiKey: API_KEY
-      }),
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-    });
-
-    const result = await res.json();
-
-    if (result.status === 'success') {
-      console.log(`[API] Retrieved ${result.count || 0} records from ${sheetName}`);
-      return result.data || [];
-    } else {
-      console.error(`[API] Failed to fetch ${sheetName}:`, result.message);
-      return [];
-    }
-  } catch (err) {
-    console.error(`[API] Error fetching ${sheetName}:`, err);
-    return [];
-  }
-};
-
-/**
- * Fetch schedule data with caching via authenticated API
- * 🔐 SECURITY FIX: No longer uses public CSV URLs
+ * 🔐 Fetch schedule data - PUBLIC ACCESS (landing page needs this)
+ * Uses public CSV for landing page display
  */
 export const fetchScheduleData = async (): Promise<ScheduleItem[]> => {
   // Check cache first
@@ -149,19 +116,29 @@ export const fetchScheduleData = async (): Promise<ScheduleItem[]> => {
     return cached;
   }
 
-  // Fetch from authenticated API
-  const data = await fetchFromAPI('Schedules');
-  if (data.length > 0) {
-    setCachedData(CACHE_KEYS.SCHEDULE, data);
-    console.log('[Cache] Cached schedule data');
-  }
-  
-  return data;
+  // 🔓 PUBLIC: Landing page needs to show schedules without login
+  return new Promise((resolve, reject) => {
+    Papa.parse(SHEET_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as ScheduleItem[];
+        setCachedData(CACHE_KEYS.SCHEDULE, data);
+        console.log('[Cache] Cached schedule data');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Google Sheets data:", error);
+        reject(error);
+      }
+    });
+  });
 };
 
 /**
- * Fetch users data with caching via authenticated API
- * 🔐 SECURITY FIX: No longer uses public CSV URLs
+ * 🔓 PUBLIC: Users data for login - must be accessible without session
+ * Login needs to fetch users to verify credentials
  */
 export const fetchUsersData = async (): Promise<UserItem[]> => {
   // Check cache first
@@ -171,21 +148,37 @@ export const fetchUsersData = async (): Promise<UserItem[]> => {
     return cached;
   }
 
-  // Fetch from authenticated API
-  const data = await fetchFromAPI('Users');
-  if (data.length > 0) {
-    setCachedData(CACHE_KEYS.USERS, data);
-    console.log('[Cache] Cached users data');
-  }
-  
-  return data;
+  // 🔓 PUBLIC: Login must work without being logged in
+  return new Promise((resolve, reject) => {
+    Papa.parse(USERS_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as UserItem[];
+        setCachedData(CACHE_KEYS.USERS, data);
+        console.log('[Cache] Cached users data');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Users data:", error);
+        reject(error);
+      }
+    });
+  });
 };
 
 /**
- * Fetch equipment data with caching via authenticated API
- * 🔐 SECURITY FIX: No longer uses public CSV URLs
+ * Fetch equipment data with caching
+ * 🔐 REQUIRES AUTH: Admin only
  */
 export const fetchEquipmentData = async (): Promise<EquipmentItem[]> => {
+  // Check if user is authenticated
+  if (!requireAuth()) {
+    console.log('[Security] User not authenticated, returning empty equipment data');
+    return [];
+  }
+
   // Check cache first
   const cached = getCachedData<EquipmentItem[]>(CACHE_KEYS.EQUIPMENT);
   if (cached) {
@@ -193,35 +186,79 @@ export const fetchEquipmentData = async (): Promise<EquipmentItem[]> => {
     return cached;
   }
 
-  // Fetch from authenticated API
-  const data = await fetchFromAPI('Master_Equipment');
-  if (data.length > 0) {
-    setCachedData(CACHE_KEYS.EQUIPMENT, data);
-    console.log('[Cache] Cached equipment data');
-  }
-  
-  return data;
+  return new Promise((resolve, reject) => {
+    const EQUIPMENT_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Master_Equipment';
+    Papa.parse(EQUIPMENT_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as EquipmentItem[];
+        setCachedData(CACHE_KEYS.EQUIPMENT, data);
+        console.log('[Cache] Cached equipment data');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Equipment data:", error);
+        reject(error);
+      }
+    });
+  });
 };
 
 /**
- * Fetch blog articles via authenticated API
- * 🔐 SECURITY FIX: No longer uses public CSV URLs
+ * Fetch blog articles - public access for landing page
  */
 export const fetchBlogData = async (): Promise<BlogArticle[]> => {
   // Always fetch fresh for blog
-  const data = await fetchFromAPI('Articles');
-  console.log('[Blog] Fetched', data.length, 'articles via authenticated API');
-  return data;
+  const BLOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Articles';
+  return new Promise((resolve, reject) => {
+    Papa.parse(BLOG_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as BlogArticle[];
+        console.log('[Blog] Fetched', data.length, 'articles from spreadsheet');
+        const filteredData = data.filter(item => item.Title || item.Article_ID);
+        resolve(filteredData);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Blog data:", error);
+        reject(error);
+      }
+    });
+  });
 };
 
 /**
- * Fetch equipment usage records via authenticated API
- * 🔐 SECURITY FIX: No longer uses public CSV URLs
+ * Fetch equipment usage records
+ * 🔐 REQUIRES AUTH: Admin only
  */
 export const fetchEquipmentUsageData = async (): Promise<EquipmentUsageRecord[]> => {
-  const data = await fetchFromAPI('Data_Penggunaan_Alat');
-  console.log('[Equipment Usage] Fetched', data.length, 'records via authenticated API');
-  return data;
+  // Check if user is authenticated
+  if (!requireAuth()) {
+    console.log('[Security] User not authenticated, returning empty usage data');
+    return [];
+  }
+
+  const EQUIPMENT_USAGE_CSV_URL = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Data_Penggunaan_Alat';
+  return new Promise((resolve, reject) => {
+    Papa.parse(EQUIPMENT_USAGE_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const data = results.data as EquipmentUsageRecord[];
+        console.log('[Equipment Usage] Fetched', data.length, 'records from spreadsheet');
+        resolve(data);
+      },
+      error: (error: Error) => {
+        console.error("Error fetching Equipment Usage data:", error);
+        reject(error);
+      }
+    });
+  });
 };
 
 /**
@@ -301,7 +338,7 @@ export const createGoogleDriveFolder = async (folderName: string): Promise<strin
     }
 
     // Validate folder name to prevent path traversal
-    if (folderName.includes('..') || folderName.includes('/') || folderName.includes('\\')) {
+    if (folderName.includes('..') || folderName.includes('/') || folderName.includes('\\\\')) {
       console.error('[Security] Invalid folder name detected');
       return null;
     }

@@ -81,7 +81,7 @@ const AdminDashboard: React.FC = () => {
   const ongoingProgram = schedule.find(item => item.Status?.toLowerCase() === 'ongoing');
   const upcomingPrograms = schedule.filter(item => item.Status?.toLowerCase() === 'upcoming');
 
-  const todayISO = getTodayISO();
+  // const todayISO = getTodayISO();
   const currentMonth = getCurrentMonth();
   
   // Filter by selected month or default to current month (show ALL schedules in month, not just from today onwards)

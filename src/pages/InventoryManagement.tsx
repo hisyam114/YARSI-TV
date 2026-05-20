@@ -20,6 +20,10 @@ const InventoryManagement: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   // Equipment Usage Form State
   const [showUsageModal, setShowUsageModal] = useState(false);
   const [usageForm, setUsageForm] = useState({
@@ -186,6 +190,12 @@ const InventoryManagement: React.FC = () => {
         const success = await executeApi('Master_Equipment', 'delete', itemToDelete);
         if (success) {
           setEquipment(prev => prev.filter(e => e.Equipment_ID !== id));
+          // Reset to first page if current page has no items after deletion
+          const newEquipmentCount = equipment.length - 1;
+          const maxPages = Math.ceil(newEquipmentCount / itemsPerPage);
+          if (currentPage > maxPages && maxPages > 0) {
+            setCurrentPage(maxPages);
+          }
           showToast(`Equipment "${itemToDelete.Item_Name}" deleted.`, 'info');
         } else {
           showToast('Failed to delete equipment.', 'error');
@@ -589,104 +599,142 @@ const InventoryManagement: React.FC = () => {
             <span className="label-caps" style={{ textAlign: 'right' }}>Actions</span>
           </div>
 
-          {equipment.map((item, i) => (
-            <div 
-              key={i} 
-              className="glass-panel responsive-grid" 
-              style={{ 
-                gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px',
-                alignItems: 'center',
-                padding: 'var(--spacing-md)', 
-                gap: 'var(--spacing-md)',
-                backgroundColor: 'var(--color-surface-container)',
-                textAlign: 'center',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container)'}
-            >
-              <div className="mobile-hide"><small className="text-dim">{item.Equipment_ID}</small></div>
-              
-              <div style={{ textAlign: 'left' }}>
-                <div className="label-caps tablet-show" style={{ display: 'none', fontSize: '10px', color: 'var(--color-outline)', marginBottom: '4px' }}>
-                  {item.Category} • {item.Equipment_ID}
+          {(() => {
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentEquipment = equipment.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(equipment.length / itemsPerPage) || 1;
+
+            return (
+              <>
+                {currentEquipment.map((item, i) => (
+                  <div 
+                    key={indexOfFirstItem + i} 
+                    className="glass-panel responsive-grid" 
+                    style={{ 
+                      gridTemplateColumns: '100px 150px 2fr 150px 150px 1fr 100px',
+                      alignItems: 'center',
+                      padding: 'var(--spacing-md)', 
+                      gap: 'var(--spacing-md)',
+                      backgroundColor: 'var(--color-surface-container)',
+                      textAlign: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-surface-container)'}
+                  >
+                    <div className="mobile-hide"><small className="text-dim">{item.Equipment_ID}</small></div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <div className="label-caps tablet-show" style={{ display: 'none', fontSize: '10px', color: 'var(--color-outline)', marginBottom: '4px' }}>
+                        {item.Category} • {item.Equipment_ID}
+                      </div>
+                      <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Item_Name}</h3>
+                    </div>
+
+                    <div className="mobile-hide label-caps" style={{ fontSize: '11px' }}>{item.Category}</div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: item.Condition?.toLowerCase() === 'good' ? 'rgba(0, 255, 65, 0.1)' : 'rgba(255, 0, 0, 0.1)',
+                        color: item.Condition?.toLowerCase() === 'good' ? 'var(--color-vibrant-green)' : 'var(--color-error)',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {item.Condition}
+                      </span>
+                    </div>
+
+                    <div className="mobile-hide" style={{ fontSize: '13px' }}>{formatDateToDDMMYYYY(item.Bought_Date)}</div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <div className="text-dim" style={{ fontSize: '13px' }}>{item.Notes}</div>
+                      <div className="tablet-show text-dim" style={{ display: 'none', fontSize: '11px', marginTop: '4px' }}>
+                        Purchased: {formatDateToDDMMYYYY(item.Bought_Date)}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={() => handleOpenModal(item)} 
+                        style={{ 
+                          background: 'var(--color-surface-container-high)', 
+                          border: '1px solid var(--color-border)', 
+                          color: 'var(--color-on-surface)', 
+                          cursor: 'pointer', 
+                          padding: '6px', 
+                          borderRadius: '4px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--color-primary)';
+                          e.currentTarget.style.color = 'var(--color-on-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'var(--color-surface-container-high)';
+                          e.currentTarget.style.color = 'var(--color-on-surface)';
+                        }}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(item.Equipment_ID)} 
+                        style={{ 
+                          background: 'var(--color-surface-container-high)', 
+                          border: '1px solid var(--color-border)', 
+                          color: 'var(--color-error)', 
+                          cursor: 'pointer', 
+                          padding: '6px', 
+                          borderRadius: '4px',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--color-error)';
+                          e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'var(--color-surface-container-high)';
+                          e.currentTarget.style.color = 'var(--color-error)';
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Pagination Controls */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: currentPage === 1 ? 'var(--color-surface-container)' : 'var(--color-surface-container-high)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                  >
+                    Prev
+                  </button>
+
+                  <span style={{ fontSize: '14px' }}>Page {currentPage} of {totalPages}</span>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: currentPage === totalPages ? 'var(--color-surface-container)' : 'var(--color-surface-container-high)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                  >
+                    Next
+                  </button>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Item_Name}</h3>
-              </div>
+              </>
+            );
+          })()}
 
-              <div className="mobile-hide label-caps" style={{ fontSize: '11px' }}>{item.Category}</div>
-
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <span style={{
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  backgroundColor: item.Condition?.toLowerCase() === 'good' ? 'rgba(0, 255, 65, 0.1)' : 'rgba(255, 0, 0, 0.1)',
-                  color: item.Condition?.toLowerCase() === 'good' ? 'var(--color-vibrant-green)' : 'var(--color-error)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {item.Condition}
-                </span>
-              </div>
-
-              <div className="mobile-hide" style={{ fontSize: '13px' }}>{formatDateToDDMMYYYY(item.Bought_Date)}</div>
-              
-              <div style={{ textAlign: 'left' }}>
-                <div className="text-dim" style={{ fontSize: '13px' }}>{item.Notes}</div>
-                <div className="tablet-show text-dim" style={{ display: 'none', fontSize: '11px', marginTop: '4px' }}>
-                  Purchased: {formatDateToDDMMYYYY(item.Bought_Date)}
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                <button 
-                  onClick={() => handleOpenModal(item)} 
-                  style={{ 
-                    background: 'var(--color-surface-container-high)', 
-                    border: '1px solid var(--color-border)', 
-                    color: 'var(--color-on-surface)', 
-                    cursor: 'pointer', 
-                    padding: '6px', 
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--color-primary)';
-                    e.currentTarget.style.color = 'var(--color-on-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--color-surface-container-high)';
-                    e.currentTarget.style.color = 'var(--color-on-surface)';
-                  }}
-                >
-                  <Edit size={16} />
-                </button>
-                <button 
-                  onClick={() => handleDelete(item.Equipment_ID)} 
-                  style={{ 
-                    background: 'var(--color-surface-container-high)', 
-                    border: '1px solid var(--color-border)', 
-                    color: 'var(--color-error)', 
-                    cursor: 'pointer', 
-                    padding: '6px', 
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--color-error)';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--color-surface-container-high)';
-                    e.currentTarget.style.color = 'var(--color-error)';
-                  }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+          {equipment.length === 0 && (
+            <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
+              No equipment found.
             </div>
-          ))}
+          )}
           
           {equipment.length === 0 && (
             <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>

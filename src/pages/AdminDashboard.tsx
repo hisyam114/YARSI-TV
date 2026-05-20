@@ -37,6 +37,10 @@ const AdminDashboard: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState<ScheduleItem | null>(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Get current month in YYYY-MM format
   const getCurrentMonth = () => {
     const now = new Date();
@@ -80,7 +84,7 @@ const AdminDashboard: React.FC = () => {
   const todayISO = getTodayISO();
   const currentMonth = getCurrentMonth();
   
-  // Filter by selected month or default to current month
+  // Filter by selected month or default to current month (show ALL schedules in month, not just from today onwards)
   const filteredSchedule = selectedMonthFilter 
     ? schedule.filter(item => {
         const itemDate = normalizeDateToISO(item.Date);
@@ -90,7 +94,7 @@ const AdminDashboard: React.FC = () => {
     : schedule.filter(item => {
         const itemDate = normalizeDateToISO(item.Date);
         const itemMonth = itemDate.substring(0, 7); // YYYY-MM
-        return itemMonth === currentMonth && normalizeDateToISO(item.Date) >= todayISO;
+        return itemMonth === currentMonth;
       });
 
   const handleCloseEventClick = () => {
@@ -278,56 +282,106 @@ const AdminDashboard: React.FC = () => {
             <span className="label-caps">Status</span>
           </div>
 
-          {filteredSchedule.map((item, index) => {
-            const sColor = getStatusColor(item.Status);
-            const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
-            
+          {(() => {
+            // Sort to put "Ongoing" status first, then sort by date
+            const sortedSchedule = [...filteredSchedule].sort((a, b) => {
+              const aIsOngoing = a.Status?.toLowerCase() === 'ongoing' ? 0 : 1;
+              const bIsOngoing = b.Status?.toLowerCase() === 'ongoing' ? 0 : 1;
+              
+              if (aIsOngoing !== bIsOngoing) {
+                return aIsOngoing - bIsOngoing;
+              }
+              
+              // If both have same status, sort by date/time
+              const dateA = parseSheetDate(a.Date, a.Start_Time);
+              const dateB = parseSheetDate(b.Date, b.Start_Time);
+              return dateA.getTime() - dateB.getTime();
+            });
+
+            // Pagination logic
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const currentSchedule = sortedSchedule.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(sortedSchedule.length / itemsPerPage) || 1;
+
             return (
-              <div 
-                key={index} 
-                onClick={() => openModal(item)}
-                className="glass-panel"
-                style={{ 
-                  padding: 'var(--spacing-md)', 
-                  borderLeft: `4px solid ${sColor}`,
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  backgroundColor: 'var(--color-surface-container)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)';
-                  e.currentTarget.style.transform = 'translateX(4px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-surface-container)';
-                  e.currentTarget.style.transform = 'translateX(0)';
-                }}
-              >
-                <div className="desktop-grid" style={{
-                  gridTemplateColumns: '100px 2fr 80px 120px 150px 1.5fr 1fr 120px',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-md)',
-                  textAlign: 'center'
-                }}>
-                  <small className="text-dim">{item.Schedule_ID}</small>
-                  <div style={{ textAlign: 'left' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
+              <>
+                {currentSchedule.map((item, index) => {
+                  const sColor = getStatusColor(item.Status);
+                  const isDone = item.Status?.toLowerCase() === 'done' || item.Status?.toLowerCase() === 'completed';
+                  
+                  return (
+                    <div 
+                      key={indexOfFirstItem + index} 
+                      onClick={() => openModal(item)}
+                      className="glass-panel"
+                      style={{ 
+                        padding: 'var(--spacing-md)', 
+                        borderLeft: `4px solid ${sColor}`,
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer',
+                        backgroundColor: 'var(--color-surface-container)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-container)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
+                    >
+                      <div className="desktop-grid" style={{
+                        gridTemplateColumns: '100px 2fr 80px 120px 150px 1.5fr 1fr 120px',
+                        alignItems: 'center',
+                        gap: 'var(--spacing-md)',
+                        textAlign: 'center'
+                      }}>
+                        <small className="text-dim">{item.Schedule_ID}</small>
+                        <div style={{ textAlign: 'left' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px' }}>{item.Program_Name}</h3>
+                        </div>
+                        <small style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{item.DayName || getDayNameIndonesian(item.Date)}</small>
+                        <small className="text-dim">{formatDateToDDMMYYYY(item.Date)}</small>
+                        <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
+                        <div className="text-dim">{item.Location}</div>
+                        <div className="text-dim">{item.PIC}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: sColor }}>
+                            {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
+                            <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Pagination Controls */}
+                {sortedSchedule.length > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: currentPage === 1 ? 'var(--color-surface-container)' : 'var(--color-surface-container-high)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: 'var(--color-on-surface)' }}
+                    >
+                      Prev
+                    </button>
+
+                    <span style={{ fontSize: '14px' }}>Page {currentPage} of {totalPages}</span>
+
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--color-border)', background: currentPage === totalPages ? 'var(--color-surface-container)' : 'var(--color-surface-container-high)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: 'var(--color-on-surface)' }}
+                    >
+                      Next
+                    </button>
                   </div>
-                  <small style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{item.DayName || getDayNameIndonesian(item.Date)}</small>
-                  <small className="text-dim">{formatDateToDDMMYYYY(item.Date)}</small>
-                  <small className="text-dim">{item.Start_Time} - {item.End_Time}</small>
-                  <div className="text-dim">{item.Location}</div>
-                  <div className="text-dim">{item.PIC}</div>
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: sColor }}>
-                      {isDone ? <CheckCircle size={14} /> : <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }} />}
-                      <span className="label-caps" style={{ fontSize: '11px' }}>{item.Status}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+                )}
+              </>
             );
-          })}
+          })()}
           
           {filteredSchedule.length === 0 && (
             <div className="glass-panel" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-outline)' }}>
